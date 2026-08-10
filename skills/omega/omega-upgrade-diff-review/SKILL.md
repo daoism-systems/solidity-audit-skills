@@ -5,208 +5,198 @@ description: Audit an upgrade, a follow-up engagement, or a PR diff rather than 
 
 # Upgrade & Diff Review
 
-Team Omega's book is mostly repeat business — Backed Finance across nine
-engagements, Altitude five, Gnosis Bridge four, Giza five, PrimeDAO four. Most
-of their reports audit a *change*, not a codebase. That is a different job and
-it has its own failure modes.
+Auditing a *change* is a different job from auditing a codebase, with its own
+failure modes. Most repeat engagements are this job.
 
-> Two questions govern the whole review: **what did this diff change**, and
-> **what did the change silently break for state and counterparties that
-> already exist?**
+> Two questions govern the review: **what did this diff change**, and **what did
+> the change silently break for state and counterparties that already exist?**
+
+The second is the one that gets missed. A diff can be individually correct on
+every line and still invalidate assumptions held by deployed state, pending
+messages, and external integrators who read the old code.
 
 ---
 
 ## 1. Scope the diff precisely
 
-Omega's scope sections for these engagements name both endpoints:
+Name both endpoints, always:
 
-- `202501-Altitude-parallel-farming` — a PR URL, plus "the diff between commit
-  `5b3026b…` and `4ce09aa…`".
-- `202309-Gnosis-Bridge` — a fork: commit `9eb8f1d…` of `Luigy-Lemon/tokenbridge-contracts`,
-  which "is a fork of `gnosischain/tokenbridge-contracts` at commit
-  `57dd76e…`. The scope of the audit is limited to the changes between these
-  two commits."
-- `202307-Backed` — "any changes made since our last report from January … i.e.
-  the difference between `78c355a…` and `25333f3…`".
+- **Base commit** — what the previous review covered, or what is deployed
+- **Head commit** — what you are reviewing
+- **For a fork:** the upstream commit it forked from. The delta from upstream is
+  the real attack surface, and the fork point is the baseline.
 
-Write both hashes. For a fork, write the upstream hash too — the fork point *is*
-the baseline, and the delta from upstream is the attack surface.
+"We audited the latest version" is not a scope. Write full hashes, and state
+explicitly that scope is the diff, so it is unambiguous what you did *not* look
+at.
 
 ## 2. Diff the storage layout
 
 The mechanical check that most needs doing and most gets skipped.
 
-`Backed-Token-Bridge-Update BCR1` — in `BackedCCIPReceiver.sol` a variable was
-removed from the second slot and a mapping inserted *between two existing
-mappings*:
-
 ```solidity
-- uint256 private _defaultGasLimitOnDestinationChain;   // removed from slot 2
-+ mapping(uint64 => ChainInfo) public chainInfos;       // inserted mid-layout
+// v1                                  // v2
+uint256 private _defaultGasLimit;      // ← removed
+mapping(uint64 => Peer) peers;         mapping(uint64 => Peer) peers;
+                                       mapping(uint64 => ChainInfo) chainInfos;  // ← inserted
+mapping(address => bool) allowed;      mapping(address => bool) allowed;
 ```
 
-> These contracts are upgradeable. If this new version is deployed as an
-> upgrade to a deployment of the previous version, it will use the original
-> storage layout — this means that the upgraded contract will read data from
-> the wrong storage slot, with unpredictable consequences.
+Behind a proxy, the *deployed* layout persists. Removing a variable shifts
+everything after it up a slot; inserting one shifts everything after it down.
+The upgraded implementation then reads and writes the wrong slots, and the
+corruption is silent — mappings and dynamic arrays hash their slot number, so
+their entire contents become unreachable rather than merely wrong.
 
-The **Resolution** is instructive: the team said the new code would be a fresh
-deployment, not an upgrade, so the issue does not apply. Omega still filed it at
-medium. File the finding; let the deployment plan be the mitigation, and record
-that the mitigation is a *plan*, not code.
+**Detection:** generate the layout for both versions (`forge inspect <C>
+storageLayout`, `hardhat-storage-layout`) and diff them mechanically. Any change
+to the slot, offset or type of a pre-existing variable is a finding.
 
-Also: `Backed-token-bridge C1` — "Add a `__gap` variable," so the next upgrade
-has room.
+**On mitigations that are deployment plans:** the common response is "this will
+be a fresh deployment, not an upgrade." That is a valid mitigation and it should
+be *recorded as contingent* — file the finding, note the plan, and mark it
+resolved-by-decision rather than resolved-in-code. Plans change; the record
+should show that the safety depends on one.
 
-**Test:** produce the storage layout for both versions (`forge inspect
-<Contract> storageLayout`, or `hardhat-storage-layout`) and diff them. Any
-change to slot, offset or type of an existing variable is a finding unless the
-deployment is fresh.
+Also check `__gap` exists and is sized so the *next* upgrade has room, and that
+inherited contracts' gaps were decremented rather than the child's storage being
+appended blindly.
 
 ## 3. Initializers
 
-Upgradeable contracts concentrate risk in initialization, and Omega finds
-something here in almost every upgrade engagement.
+Upgradeable contracts concentrate risk in initialization. Recurring hazards:
 
-- `Backed-Multiplier-Updates BAFT1` — "Unprotected v4 Migration Initializer can
-  be front-run and permanently lock legitimate migration." The migration
-  initializer is a one-shot; whoever calls it first wins, and if that is an
-  attacker the real migration can never run.
-- `Backed-rebasing-tokens B2` — "`initialize_v3` can be called also after
-  initialization."
-- `Backed-RebasingTokens BI3` — "Contract initialize function might be re-called
-  by anyone."
-- `Backed-wrapped-tokens G6` / `BI10` — "Call `_disableInitializers` in the
-  constructor of proxy contracts" / "Disable initializers on the implementation
-  contract."
-- `lsdai L7` — "Remove default values in proxy implementation" (values set at
-  declaration land in the implementation's storage, not the proxy's).
+| Hazard | Shape |
+|---|---|
+| **Re-callable initializer** | `initialize()` without `initializer`, or a `v2`/`v3` re-init guarded by nothing |
+| **Front-runnable migration** | A one-shot migration entry point that is permissionless — whoever calls first wins, and if that is an attacker the legitimate migration can never run |
+| **Live implementation** | Implementation contract not disabled, so it can be initialized directly and, for UUPS, self-destructed or re-pointed |
+| **Inline initializers** | `uint256 x = 5;` at declaration writes the *implementation's* storage, never the proxy's |
+| **Version regression** | `reinitializer(n)` where `n` does not strictly increase, silently permitting a replay |
 
-**Test:** every `initialize*` function. Is it `initializer`/`reinitializer(n)`
-guarded? Is `n` monotonically increasing across versions? Is it access-controlled
-in addition to being one-shot? Does the constructor call `_disableInitializers`?
-Are there state variables with inline initializers that will never take effect
-behind a proxy?
+**Detection:** every `initialize*` function — one-shot guarded, *and*
+access-controlled (one-shot alone does not stop a front-runner). Constructor
+calls `_disableInitializers()`. No state variable relies on an inline
+initializer. Reinitializer versions increase monotonically across releases.
 
 ## 4. Does v2 still honour v1's promises?
 
-The subtlest class. Existing holders, in-flight messages and outstanding
-approvals were made promises by v1. An upgrade can break them without touching
-any line that looks security-relevant.
+The subtlest class, and the one unique to diff review. Existing holders,
+in-flight messages and outstanding approvals were made promises by v1.
 
-- `Gnosis XDFB3` — "`executeSignaturesGSN` sends different tokens before and
-  after the upgrade." Messages signed under v1 semantics get executed under v2
-  semantics.
-- `Backed-Token-ERC4626 WBT1` — "The contract does not follow ERC4626
-  standard." A wrapper that gains an ERC4626 face must actually satisfy it, or
-  integrators built against the standard will break.
-- `Altitude C11` — "Transfer and transferFrom functions do not respect ERC20
-  standard."
-- `Blindex U3` — a modified `swap` that keeps 90% as a penalty "does not respect
-  its 'promise' to return at least `amount0Out`". Omega's severity reasoning
-  turns on the integration surface: "an end-user will typically not call the
-  `swap()` function directly, but rather as part of a chain of swap calls
-  triggered by the UniswapV2Router, and these functions expect the `amountOut`
-  values to be respected, and will fail if they do not."
+Enumerate what the old version guaranteed, then check each still holds:
 
-**Test:** list what the old version guaranteed — standard conformance, event
-shapes, return-value semantics, message formats, the meaning of each stored
-value — and check each still holds. Pay attention to state that is *in flight*
-across the upgrade: pending requests, unclaimed rewards, signed-but-unexecuted
-messages, outstanding approvals.
+- **Standard conformance.** If v1 satisfied ERC-20/721/4626, v2 must too —
+  integrators built against the standard, not against your implementation. A
+  wrapper that gains a new standard's *interface* must actually satisfy that
+  standard's *semantics*, not merely compile.
+- **Return-value and revert semantics.** A function that returned `false` on
+  failure and now reverts (or vice versa) breaks every caller that branched on
+  it — and turns their error-handling branch into dead code.
+- **Event shapes.** Indexers and accounting systems are consumers too.
+- **Message formats.** A message signed or emitted under v1 semantics may be
+  executed under v2 semantics. If the encoding is unchanged but the *meaning* of
+  a field changed, in-flight messages are now misinterpreted.
+- **The meaning of stored values.** Same slot, same type, new interpretation is
+  a silent migration bug.
 
-## 5. Re-check the previous reports' open findings
+**A useful severity lever:** the harm is often not to the direct caller but to
+the *integration surface*. A function that no longer honours its documented
+output will be called by a router or aggregator that assumed it did, and those
+calls will fail or misprice. State that chain — it is usually what moves the
+rating.
 
-Omega treats this as an in-scope deliverable, not a courtesy.
+**Detection:** list in-flight state that crosses the upgrade boundary — pending
+requests, unexecuted signed messages, unclaimed rewards, outstanding approvals,
+queued withdrawals — and validate each against the new code.
 
-`Giza-Pendle G1` **[medium]** — "Unaddressed issues from older reports." It
-lists two findings still open from `202505-Giza-ARMA-II`, and then this:
+## 5. Re-check the previous reviews' open findings
 
-> Also issue A2 from [the May report] (Top-up logic is confusing and can be
-> abused) which **was resolved, re-appears in the current code base.**
+Treat this as an in-scope deliverable, not a courtesy. Two checks, not one:
 
-A regression of a fixed finding. Only a review that carries the old reports
-forward catches it. `202505-Altitude` has a dedicated "Fixes from older
-reports" section tracking `HV1b`, `HM3` and `HM5` across three prior reports,
-with the original report and finding ID cited for each.
+- **Still-open findings** — for every previously reported issue marked not
+  resolved or acknowledged, confirm the current state.
+- **Regressions** — for every previously *resolved* finding, confirm it is still
+  fixed. Fixes get reverted by later refactors, merges and branch resurrections,
+  and a regression of a known bug is more embarrassing than the original.
 
-**Test:** open every prior report for this client. For each `[not resolved]` and
-`[acknowledged]` finding, check the current code. For each `[resolved]` finding,
-check it is *still* fixed.
+Only a review that carries prior reports forward catches the second.
 
 ## 6. Audit the fix commit as new code
 
-Fixes introduce bugs. Omega's own archive proves it: `dxDAO VM1` was resolved,
-and the resolution note reads —
+Fixes introduce bugs. A patch written under time pressure, against a narrow
+description of a symptom, touching code the author has re-entered after a gap,
+is high-risk code by construction — and it arrives *after* the main review, when
+attention is lowest.
 
-> This issue was resolved. However, there are issues with the new `redeem`
-> function which we added at the end of the report, like `VM13` …
+The characteristic failure: a fix rewrites a function to close the reported
+path, and the rewrite's default initialisation, reordered guard, or new early
+return opens a different one.
 
-`VM13` **[high]** — "Stakers who lost can redeem their stake" — exists only
-because of the fix for `VM1`. Similarly `Altitude VC1` was fixed by routing
-`setBufferConfig` through the registry, which required checking that the
-registry's own call passes `msg.sender` correctly.
-
-And `202605-Backed-Token-ERC4626` states plainly: "We also audited the other
-changes that were made in this commit." Clients bundle unrelated work into fix
-commits.
-
-**Test:** diff the fix commit in full, not just the touched lines you asked
-about. Re-run every lens over the changed code.
+**Detection:** diff the fix commit in full and re-run every lens over the
+changed code. Clients routinely bundle unrelated work into fix commits, so
+review all of it, not only the lines you asked about.
 
 ## 7. Watch for divergence from upstream
 
-Several Omega clients fork well-known code. The delta is where the bugs are.
+Forked well-known code is a recurring source of high-severity findings, because
+reviewers extend the original's reputation to the copy.
 
-- `Blindex U4` — "UniswapV2Pair.sol code is heavily and unnecessarily
-  modified," which Omega flags as the *root cause* of `U1` (broken
-  `DOMAIN_SEPARATOR`), `U2` and `U3`. The resolution to all three was deleting
-  the fork.
-- `dxGovernance V2` — the fix is literally "also decrease the counter in case of
-  `BoostedTimeOut`, as it is done in the original code," with a line-anchored
-  link to daostack's `GenesisProtocolLogic.sol#L597`. The upstream was right;
-  the fork dropped a branch.
-- `dxGovernance` on `Avatar.sol` — Omega identifies it as a near-verbatim copy
-  of `@daostack/arc` v0.0.1-rc.57, enumerates the two differences, notes the
-  file was covered by ChainSecurity's 2019 audit, and concludes the differences
-  "are almost trivial and can safely be ignored." **Scoping out is a finding
-  too**, when you show your work.
+- **Dropped branches.** A fork that omits one case from a state transition the
+  original handled. The original is the specification; diffing against it finds
+  the omission immediately.
+- **Broken initialization in copied crypto.** Domain separators, type hashes and
+  chain IDs are set in the original's constructor; a fork that restructures
+  initialization commonly leaves them empty or chain-independent, breaking
+  replay protection while every individual line still looks plausible.
+- **Unpatched upstream advisories.** The pinned version may predate a known fix.
 
-**Test:** for each forked file, diff against the exact upstream version and
-review only the delta — but review all of it. And check whether upstream has
-since fixed something the fork carries (`Blindex G2` is upstream advisories
-against a pinned OpenZeppelin).
+**A meta-finding worth making:** when a fork's modifications are extensive and
+not clearly motivated, the modification *itself* is the root cause — several
+downstream findings collapse into "do not fork this; use the library." That is
+a stronger recommendation than patching each symptom.
+
+**Scoping out is also a finding, when you show your work.** Where a file is a
+near-verbatim copy of an audited upstream release, identify the upstream
+version, enumerate the differences, state that they are immaterial, and cite the
+prior audit. That is a defensible reason to spend no further time — and it is
+only defensible written down.
 
 ---
 
 ## Checklist
 
 Scope
-- [ ] Both commit hashes recorded; for forks, the upstream fork point too
-- [ ] Prior reports for this client enumerated
+- [ ] Base and head commit hashes recorded; for forks, the upstream fork point
+- [ ] Prior reviews for this codebase enumerated
+- [ ] Stated explicitly that scope is the diff
 
 Mechanics
-- [ ] Storage layouts generated for both versions and diffed
-- [ ] `__gap` present and correctly sized for future upgrades
-- [ ] Every `initialize*` one-shot, access-controlled, correctly versioned
+- [ ] Storage layouts generated for both versions and diffed mechanically
+- [ ] `__gap` present, correctly sized, and inherited gaps decremented
+- [ ] Every `initialize*` one-shot **and** access-controlled
 - [ ] `_disableInitializers()` in the implementation constructor
-- [ ] No inline state-variable initializers relied on behind a proxy
-- [ ] Migration/initialization entry points cannot be front-run into a lock
+- [ ] No state relies on inline initializers behind a proxy
+- [ ] Reinitializer versions strictly increasing
+- [ ] Migration entry points cannot be front-run into a permanent lock
 
 Semantics
-- [ ] Standards the old version satisfied still satisfied
-- [ ] Event shapes, return-value semantics and message formats unchanged, or the
-      change is deliberate and documented
-- [ ] In-flight state — pending requests, unexecuted signed messages, unclaimed
+- [ ] Standards satisfied by v1 still satisfied
+- [ ] Return-value, revert, and event semantics unchanged, or deliberately and
+      documentedly changed
+- [ ] Stored values retain their meaning
+- [ ] In-flight state — pending requests, unexecuted messages, unclaimed
       rewards, outstanding approvals — still valid under v2
+- [ ] Integration-surface consequences traced, not just direct-caller ones
 
 Continuity
-- [ ] Every open finding from every prior report re-checked
+- [ ] Every open finding from every prior review re-checked
 - [ ] Every previously-resolved finding checked for regression
 - [ ] Fix commit audited in full, including unrelated changes
-- [ ] Forked files diffed against exact upstream; upstream fixes checked for
+- [ ] Forked files diffed against exact upstream; upstream advisories checked
+- [ ] Deliberate scope exclusions written down with their justification
 
 **Pairs with:** **[Q]** `proxy-upgrade-safety` for the mechanics of storage
 collision, selector clashing and delegatecall context across Transparent/UUPS/
-Beacon/Diamond patterns — this skill covers the *engagement* around an upgrade
-rather than the proxy pattern itself.
+Beacon/Diamond patterns — this skill covers the *review of a change* rather than
+the proxy pattern itself.

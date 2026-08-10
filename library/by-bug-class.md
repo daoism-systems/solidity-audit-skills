@@ -238,7 +238,7 @@ for paired-function bugs → [L] niche agents for cross-contract drift.
 | **[L]** | `sources/plamen/agents/depth-external.md` §2 | ●  Message latency, stale state, multi-block arbitrage. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/cross-chain-timing/SKILL.md` | ●  Per-language cross-chain timing. |
 | **[L]** | `sources/plamen/agents/skills/injectable/cross-vm-serialization-conformance/SKILL.md` | ●  Outbound encoding conformance (EVM → non-EVM). |
-| **[O]** | `skills/omega/omega-ordering-and-approval-races/SKILL.md` | ◐  Shape 3 — two entry points accepting the same bridged message, raced to choose the delivered token (Gnosis `XDFB1`). |
+| **[O]** | `skills/omega/omega-ordering-and-approval-races/SKILL.md` | ◐  Shape 3 — two entry points accepting the same authorization but delivering different effects, raced to choose the outcome. |
 
 **Only plamen covers this.** For cross-chain audits, start with
 `depth-external.md` and add the per-language `cross-chain-timing` skill.

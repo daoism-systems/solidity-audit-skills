@@ -156,7 +156,7 @@ Produce the final audit report with severity, evidence, and fix suggestions.
 | **[L]** | `sources/plamen/rules/finding-output-format.md` | Finding output format contract. |
 | **[P]** | `sources/pashov/solidity-auditor/references/report-formatting.md` | Pashov's report formatting. |
 | **[P]** | `sources/pashov/solidity-auditor/references/judging.md` | Four-gate severity judging rubric (BLOCKS / ALLOWS / IRRELEVANT / UNCERTAIN). |
-| **[O]** | `skills/omega/omega-audit-workflow/SKILL.md` | Omega's report structure: per-file sections with filename-derived ID prefixes, a General section, mechanism→consequence→Recommendation→Severity-with-justification, and the preliminary → fix-commit → verified Resolution loop. |
+| **[O]** | `skills/omega/omega-audit-workflow/SKILL.md` | Report structure: per-file sections with filename-derived ID prefixes, a General section, mechanism→consequence→Recommendation→Severity-with-justification, and the preliminary → fix-commit → verified Resolution loop. |
 
 **Recommended:** [L] `report-template.md` for the structure → [P]
 `judging.md` for the severity rubric.

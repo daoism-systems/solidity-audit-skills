@@ -1,226 +1,209 @@
 ---
 name: omega-repo-hygiene-sweep
-description: Run Team Omega's General-section sweep — the repository-level pass that opens every one of their reports. Covers dependency pinning and advisories, licensing and copyright compliance, test coverage and CI, compiler and linter warnings, Solidity version policy, dead code, visibility, event indexing, custom errors, and documentation drift. Produces the G-series findings. Use at the start of any audit, before reading contract logic, or when writing up the General section of a report.
+description: Run the repository-level pass that opens an audit — dependency pinning and advisories, licensing and copyright compliance, test coverage and CI, compiler and linter warnings, language version policy, dead code, visibility, event indexing, custom errors, and documentation drift. Produces the General section of the report. Use at the start of any audit, before reading contract logic, or when writing up repo-wide findings.
 ---
 
 # Repo Hygiene Sweep
 
-Every Team Omega report opens with a **General** section — `G1`, `G2`, `G3` …
-— covering the repository rather than any one contract. It is the most stable
-part of their methodology: the 2021 DXdao report and the 2026 Backed report
-share most of the same items.
+The repository-level pass, covering everything that is not about a specific
+contract's logic. It produces the report's **General** section — findings
+numbered `G1`, `G2`, `G3`… ahead of any per-file section.
 
-It is also cheap. Run it first, in parallel with the build, before you read any
-logic. It produces most of the `low` and `info` volume, gets it out of the way,
-and tells you a lot about how much to trust the code you are about to read.
+Run it **first**, in parallel with the build, before reading any logic. Three
+reasons: it is cheap and mostly mechanical; it clears the low-severity volume
+out of the way so the logic review is not interrupted by it; and it is a
+remarkably good predictor of how much to trust the code you are about to read.
+A repo with failing tests, unpinned dependencies and compiler warnings is
+telling you where its other defects will be.
 
-> Omega sometimes just says it. `lsdai G1` is titled "General state of the
-> repository": "The project's setup is not complete. The project mixes foundry
-> with hardhat and npm — we recommend you choose either framework. There is no
-> documentation for developers for installing or running…" Filed as its own
-> finding.
+Where the repo's overall state is poor enough to be a finding in its own right,
+file it as one — mixed build systems, absent developer documentation, no
+reproducible setup. A single "general state of the repository" finding is more
+useful than ten fragments.
 
 ---
 
 ## Dependencies
 
-**Pin everything.** The single most repeated finding in the archive — it appears
-in over half the reports (`Fragmint G3`, `Altitude G4`, `Euler G1`,
-`Karpatkey G1`, `Backed G2`, `Society G1`, `freename-snap G2`, `Yieldnest G1`,
-and on). `Giza-Pendle PP` gives the reasoning for a Python project, and it
-generalises:
+**Pin everything.** Solidity dependencies, JS/Python packages, and the compiler
+version. The reasoning generalises across ecosystems:
 
-> This makes the exact builds unpredictable, and makes it easier for
-> compromised new package versions to be included in the build.
+> Unpinned dependencies make builds unpredictable, and make it easier for a
+> compromised new package version to enter the build.
 
-Pin Solidity dependencies in `package.json` / `foundry.toml` / `remappings`, and
-pin the compiler (`Spectre G2`, `Toucan G1`, `PrimeDAO-LBP M1` — "a floating
-pragma is set instead of a fixed pragma"). `Karpatkey G1` is filed at **medium**:
-"OpenZeppelin dependency is not pinned to a release" — pointing at a git ref
-rather than a published version is worse than a loose semver range.
+Grade the severity by how loose the pin is. A caret range is bad; **pointing at
+a git branch or unreleased ref is worse than a loose semver range** and is worth
+escalating, because the referenced code can change without any version signal at
+all.
 
-**Run the dependency audit and act on it.** `Blindex G2` **[medium]** reports
-122 npm vulnerabilities and quotes the two OpenZeppelin `TimelockController`
-advisories by GHSA ID. `EnterDAO G3`, `PrimeDAO-LBP G2` ("OpenZeppelin
-dependency has a critical vulnerability"), `Delphia`. Cite the advisory ID.
+Include the compiler: a floating pragma (`^0.8.0`) means the deployed bytecode
+depends on whoever compiled it.
 
-**Remove what you do not use.** `Backed G3`, `OpusEdu G4` ("move dependencies to
-devDependencies and remove unused dependencies"), `Backed-token-bridge G4`.
+**Run the dependency advisory audit and act on it.** Cite advisories by
+identifier (GHSA/CVE) and name the affected package and version range. An
+advisory against a *Solidity* dependency is materially different from one
+against a build-time JS tool — separate them rather than reporting a raw
+vulnerability count.
 
-**No `draft-` or alpha code in production.** `Spectre E3` — inheriting
-`draft-ERC20PermitUpgradeable.sol`; `dxGovernance F1` **[medium]** — "do not use
-'draft' contracts in production"; `Blindex G4` — "do not include solidity code
-released in 'alpha'."
+**Remove unused dependencies**, and move build-only ones to dev dependencies.
+
+**No `draft-` or alpha code in production.** Interfaces and semantics of draft
+standards change, and a `draft-` prefix is the author telling you not to rely on
+it yet.
 
 ## Licensing and copyright
 
-Omega is unusually rigorous here and rates violations at **medium**. No other
-collection in this library covers it at all.
+Rigorously checked here and rated up to **medium** — this is the item most audit
+checklists omit entirely.
 
-- `EnterDAO Y1` **[medium]** — the staking contract is adapted from Synthetix,
-  published under MIT. "You can republish the files under MIT, but you must, as
-  the LICENSE file in that repository says, maintain the original copyright
-  statements … **What you definitely cannot do is claim copyright yourself.**"
-- `Blindex G1` **[medium]** — "GPL code is published under MIT license."
-- `EnterDAO G1` / `Delphia G1` / `Fragmint G4` — licensing violations, incomplete
-  licensing information.
-- `Altitude G2` **[medium]** — the fullest statement. Six different SPDX
-  identifiers across the repo (`BUSL-1.1`, `agpl-3.0`, `AGPL-3.0`, `MIT`,
-  `GPL-2.0-or-later`, plus `ISC` in `package.json`), third-party files whose
-  original licence terms are not respected, and no `LICENSE.txt`. Omega's
-  requirements: include the full text of each licence; claim copyright for code
-  you wrote ("claiming authorship of the code is a necessary condition for
-  granting any further rights to the code"); preserve third-party copyright
-  notices; check the licences are mutually compatible; use only valid SPDX
-  identifiers.
-- `Toucan G3` — "Invalid SPDX license identifier."
-- `Backed-Finance G2` / `Spectre G1` / `PrimeDAO-LBP G1` — "no copyright is
-  claimed", "assert copyright". Absence is a finding, not just non-compliance.
+The recurring violation: code adapted from a permissively-licensed project with
+the original copyright notice stripped and the adapter's own claimed instead.
+MIT permits republishing; it *requires* preserving the copyright and permission
+notice. Claiming copyright over someone else's code is the part that is
+categorically not permitted, and it is worth stating in exactly those terms.
 
-**Checks:** `LICENSE` file present; SPDX identifier on every file and all valid;
-one consistent licence, or documented exceptions; every vendored or adapted file
-retains its upstream copyright notice; licences compatible with the project's own.
+The full check:
+
+- `LICENSE` file present, with the complete licence text
+- Copyright **claimed** for the project's own code — its absence is a finding,
+  because claiming authorship is a precondition for granting any rights onward
+- SPDX identifier on every file, and every identifier **valid**
+- One consistent licence across the repo, or documented exceptions. A repo
+  carrying several mutually incompatible identifiers plus a different one in
+  `package.json` is a finding regardless of which is intended
+- Every vendored or adapted file retains its upstream notice and licence text
+- Licence compatibility checked — a copyleft-derived file cannot be relicensed
+  permissively
 
 ## Tests and CI
 
-- **Coverage measured and adequate.** In roughly two thirds of reports
-  (`Fragmint G2`, `Everbloom G1`, `Karpatkey G2`, `Society G2`,
-  `Backed-Forwarder G1`, …). Name the uncovered paths that matter.
-- **Tests actually pass.** `dxGovernance G3`, `dxDAO G3`, `Gnosis-Hashi G2`
-  ("tests are failing, and test coverage is incomplete"), `Gnosis G1` ("tests in
-  CI are failing").
-- **Coverage is part of CI.** `EnterDAO G6`, `dxGovernance G10`.
-- **The coverage tooling works.** `DXdao-staking G1` — "command for running test
-  coverage is broken"; `EnterDAO G7` — "some tests fail under coverage";
-  `EnterDAO G8`/`Y4` — "coverage is configured improperly"; `PrimeDAO-LBP G6` —
-  "solcover settings file refers to non-existing contract"; `dxGovernance G9` —
-  "command for running gas report does not work".
-- **CI exists at all.** `Fragmint G1`, `DXdao-staking G6`, `Gnosis-Bridge G1`
-  ("no working tests or continuous integration"), `Backed-Token-Bridge G2`.
-- **Formal verification, if claimed, works.** `Euler G3` — "Certora formal
-  verification is broken and lacks invariants."
+Check the whole chain, not just the headline number:
+
+- **Tests pass.** Failing tests in the repo or in CI.
+- **Coverage measured and adequate.** Name the uncovered paths that matter
+  rather than quoting a percentage — an uncovered admin function is not
+  equivalent to an uncovered redemption path.
+- **Coverage runs in CI**, not only locally.
+- **The tooling actually works.** Coverage or gas-report commands that error,
+  coverage configuration pointing at contracts that no longer exist, tests that
+  pass normally but fail under instrumentation. A broken measurement is worse
+  than no measurement because it is reported as a pass.
+- **CI exists and is green.**
+- **Claimed formal verification is real.** Specs that do not run, or that assert
+  nothing meaningful, are a finding — the claim carries weight it has not
+  earned.
 
 ## Compiler, linter, language version
 
-- **Zero compiler warnings.** `Delphia G3`, `PrimeDAO-Seed G4`, `EnterDAO Y5`,
-  `dxGovernance G12`, `Blindex E3`.
-- **Zero linter warnings.** `Delphia G4`, `PrimeDAO-LBP G4` ("linter emits 25
-  warnings"), `dxGovernance G13` ("eslint configuration is invalid").
-- **Current Solidity, and a locked pragma.** `Delphia G5`, `Altitude G3`,
-  `EnterDAO G5`, `Stackly G4`, `dxGovernance G5` ("do not use deprecated
-  compiler versions"), `Altitude-parallel G2` (naming a specific target version
-  to move to). Note `DXdao-Carrot G4` recommends moving *to* 0.8.x — the point
-  is a deliberate, current, pinned version, not novelty.
-- **It compiles in the documented configuration.** `Backed-Token-Bridge G3`.
+- **Zero compiler warnings.** Each one either indicates a defect or trains
+  reviewers to ignore the channel.
+- **Zero linter warnings**, and a valid linter configuration.
+- **Current, deliberate, pinned language version.** The point is a considered
+  choice, not novelty: name the target version and the reason.
+- **The repo compiles in its documented configuration**, from a clean checkout.
+- **One build system.** Mixed toolchains produce divergent artifacts.
 
 ## Dead and duplicated code
 
-Consistently filed, and Omega gives the reason each time — not style, but the
-risk of calling something half-implemented:
+Report these with the *reason*, not as style:
 
-> Remove unused code and avoid leaving code which is not properly implemented to
-> avoid mistakenly calling it in the future. — `Giza-Pendle W2`, `SQLW2`, `SQLR2`
+> Remove unused code, and avoid leaving code which is not properly implemented,
+> to avoid mistakenly calling it in the future.
 
-- Unused variables, imports, functions, constants: `Altitude RD1`/`HM5`/`SG9`,
-  `Karpatkey K22`, `Backed-wrapped-tokens G5`, `Blindex P3`–`P5`,
-  `dxDAO VM9`, `Gnosis PDP1`, `Backed-Finance G3`.
-- Duplication: `DXdao-staking D13` ("significant code duplication across
-  multiple functions"), `Karpatkey K16`, `Altitude OM1`/`VV2`/`SBP3`,
-  `Gnosis-Hashi H1`, `Giza-Pendle T2`, `Spectre B7`/`B8`.
-- Leftovers: `dxGovernance P14` — "forgotten 'TODO' statement".
+- Unused variables, imports, functions, constants, parameters, events
+- Leftover `TODO` markers and commented-out logic
+- Duplicated blocks across functions or contracts
 
-Duplication is not merely cosmetic in this archive: `Spectre I4` exists because
-four findings in one contract apply verbatim to its near-identical twin, and
-`Gnosis XDFB1` is a *high-impact* bug that exists only because two functions
-were copies.
+**Duplication is not merely cosmetic**, and this is the argument that makes the
+finding land: copies drift. When two near-identical functions exist, one gets a
+fix and the other does not, or the two acquire subtly different guards. Where
+you find duplication, **diff the copies** — the divergence is frequently a real
+finding, and near-identical entry points with non-identical authorization are a
+high-severity shape (see `omega-ordering-and-approval-races`, Shape 3).
+
+Likewise, when findings in one contract apply verbatim to its near-twin, say so
+by reference rather than duplicating the writeup.
 
 ## Interfaces, visibility, events, errors
 
-- **Contracts inherit their own interfaces.** `DXdao-staking G3`/`ID1`/`IF1`
-  ("interface does not correspond with the implementation"), `Everbloom EDM2`/
-  `EN7`, `Giza GS1`, `Backed BAFT1`, `Backed-Forwarder G3`. The point is that
-  inheritance makes drift a compile error.
-- **`external` over `public`** where not called internally. Ubiquitous —
-  `Blindex G11`, `Karpatkey K19`, `Euler F3`, `Yieldnest P2`, `Altitude SA12`,
-  and a dozen more.
-- **Custom errors over revert strings.** `dxDAO G1`, `Altitude G5`,
-  `Backed-wrapped-tokens G3`, `Giza GMC1`.
-- **Index event parameters; emit on every state change.** `Everbloom G4`,
-  `DXdao-Carrot G3`, `OpusEdu G5`, `EnterDAO G12`, `Blindex G12` ("emit events
-  when parameters change"), `Karpatkey K11` ("initialize does not emit events
-  for initial values"), `Altitude RIC1`, `Society SPB7`.
-- **`immutable` / `constant` where applicable.** `Altitude G6`, `Delphia C11`,
-  `Fragmint F3`, `Altitude MV3`, `dxDAO VM12`, `Blindex D1`.
-- **Explicit visibility on state variables.** `Delphia C12`/`S4`,
-  `PrimeDAO-Seed S12`, `Karpatkey K21`, `Backed-wrapped-tokens WC1`.
+- **Contracts inherit the interfaces they declare.** The point is not
+  documentation — inheritance makes interface/implementation drift a *compile
+  error* rather than a silent integration break.
+- **`external` over `public`** where never called internally.
+- **Custom errors over revert strings.**
+- **Events emitted on every state change, with relevant parameters indexed.**
+  Two commonly missed cases: initialization, which sets the initial values
+  silently, and constructor-set parameters that have an `Updated` event for
+  every later change but none for the first.
+- **`immutable` / `constant`** where the value never changes after construction.
+- **Explicit visibility** on state variables.
 
 ## Documentation and configuration
 
-- **Docs match the code.** `EnterDAO G2`, `Backed-atomic-swap G3`,
-  `Backed-Forwarder G2` ("documentation is not consistent with the code"),
-  `Stackly D3` ("start time minimum requirement does not match documentation"),
-  `Society CR2` ("permissions as described in docstring do not correspond with
-  actual permissions"), `freename-snap G3`.
-- **Specs complete and unambiguous.** `Delphia G2`, `Delphia C9`.
-- **README instructions work.** `Blindex G6`, `Fragmint G5`, `EnterDAO R1`
-  ("explain that you need a config file before giving the `npx hardhat compile`
-  instruction"), `dxGovernance G6`/`G7` (deploy script fails on local network;
-  deploy script is not tested).
-- **Comments are not misleading.** `Spectre I1`, `EnterDAO S2`/`S3`,
-  `Karpatkey K20`, `Blindex P13`.
-- **One build system.** `lsdai G1`.
+- **Docs match the code.** Where a docstring describes narrower behaviour than
+  the implementation permits, that is not a documentation bug — it is evidence
+  of a **logic bug**, because the docstring records the intended invariant.
+  Escalate rather than filing it as a typo.
+- **Specifications complete and unambiguous**, with ambiguities listed.
+- **README instructions work from a clean checkout** — including prerequisites
+  the author has locally and did not document.
+- **Deployment scripts are tested** and run against a local network.
+- **Comments are not misleading.** A stale comment is worse than none.
 
 ## Roles and configuration hygiene
 
-Borderline between hygiene and trust modelling — Omega files them in General:
+Borderline between hygiene and trust modelling; file in General:
 
-- `Blindex G3` — "many roles control critical parameters";
-  `Spectre G8` / `Society G3` — "permission management is complex";
-  `InverterDLF G3` — "improper roles management".
-- `Blindex G7` — "no sanity checks, value limits, and change delays when
-  changing parameters."
-- `Giza D2` — "use a multisig with a non-trivial threshold for ownership";
-  `Giza D1` — set the delegate to the multisig.
-- `Giza O1` — "use OpenZeppelin `Ownable2Step` instead of your own
-  implementation."
-- `Blindex G8` — "use of precision for fractions is overly complex" (and
-  `Blindex G10`, "use `Ownable` instead of defining your own" — prefer the
-  audited standard implementation over a hand-rolled one).
+- **Enumerate every privileged role** and what each can do. Over-complex
+  permission models are a finding on their own — complexity that cannot be
+  reasoned about cannot be audited.
+- **Parameter setters have sanity bounds, value limits and change delays.**
+- **Ownership is 2-step** (`Ownable2Step`-style accept), and held by a multisig
+  with a non-trivial threshold rather than an EOA.
+- **Prefer the audited standard implementation** over a hand-rolled equivalent —
+  access control, pausing, vesting, math. Rolling your own is a finding even
+  when the implementation looks correct.
 
 ---
 
 ## Output
 
-Number them `G1…Gn` in the report's **General** section, before any per-file
-section. Most land at `low` or `info`. Escalate to **medium** for: licensing
-violations, unpinned or advisory-affected dependencies, and anything that makes
-the delivered artifact non-reproducible.
+Number `G1…Gn` in the **General** section, before per-file sections. Most land
+at `low` or `info`.
 
-Keep each finding one line of mechanism plus one line of recommendation. This
-section should be fast to read and fast to fix; it is not where the interesting
-work is, and padding it obscures the findings that matter.
+**Escalate to `medium`** for: licensing violations, unpinned or
+advisory-affected dependencies, and anything making the delivered artifact
+non-reproducible.
+
+Keep each finding to one line of mechanism plus one line of recommendation.
+This section should be fast to read and fast to fix; padding it obscures the
+findings that matter.
 
 ---
 
 ## Checklist
 
-- [ ] All dependencies pinned to released versions (not git refs, not ranges)
+- [ ] All dependencies pinned to released versions — not git refs, not ranges
 - [ ] Compiler pragma locked; version current and deliberate
-- [ ] Dependency advisory audit run; advisories cited by ID
+- [ ] Advisory audit run; advisories cited by ID; Solidity deps separated from
+      build tooling
 - [ ] Unused dependencies removed; no `draft-`/alpha code in production
-- [ ] `LICENSE` present; SPDX on every file and valid; single consistent policy
+- [ ] `LICENSE` present with full text; SPDX on every file and valid; single
+      consistent policy
 - [ ] Copyright claimed for own code; upstream notices preserved on vendored code
 - [ ] Licence compatibility checked
-- [ ] Tests pass; coverage measured, adequate, wired into CI; tooling works
-- [ ] CI exists and is green
+- [ ] Tests pass; coverage measured, adequate, in CI; tooling verified working
+- [ ] CI exists and is green; claimed formal verification actually runs
 - [ ] Zero compiler warnings; zero linter warnings
-- [ ] Repo compiles in its documented configuration; one build system
-- [ ] No unused variables, imports, functions, constants; no TODOs
-- [ ] Duplication noted — and checked for divergence between the copies
+- [ ] Compiles from clean checkout in documented configuration; one build system
+- [ ] No unused variables, imports, functions, constants, parameters; no TODOs
+- [ ] Duplication noted — **and the copies diffed for divergence**
 - [ ] Contracts inherit their declared interfaces
-- [ ] `external` vs `public`; explicit state-variable visibility; `immutable`/
-      `constant` applied
-- [ ] Custom errors; events emitted on every state change, parameters indexed
-- [ ] Docs, comments and docstrings match the code; README instructions work
-- [ ] Privileged roles enumerated; parameter setters have sanity bounds and
-      delays; ownership is 2-step and multisig-held
+- [ ] `external` vs `public`; explicit state visibility; `immutable`/`constant`
+- [ ] Custom errors; events on every state change including initialization,
+      parameters indexed
+- [ ] Docs, docstrings and comments match the code — narrower docstrings
+      escalated as logic bugs
+- [ ] README works from clean checkout; deploy scripts tested
+- [ ] Privileged roles enumerated; setters bounded and delayed; ownership 2-step
+      and multisig-held; standard implementations preferred over hand-rolled

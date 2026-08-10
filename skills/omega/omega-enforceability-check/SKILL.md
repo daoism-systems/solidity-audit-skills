@@ -5,22 +5,18 @@ description: Find security checks that exist but constrain nothing. For every gu
 
 # Enforceability Check
 
-A distinct Team Omega discipline, and one the bug-class checklists miss
-entirely. Static analysers and "missing modifier" detectors look for guards
-that are **absent**. Omega repeatedly finds guards that are **present,
-correct-looking, and completely ineffective**.
-
-They even have a house word for it. `Blindex P2`: "Redeem penalty of 90% is
-*unenforceable*." `dxGovernance W1`: "Limits on ERC20 token transfers are not
-*enforceable*." `Toucan T2`: "Cooldown period is *unenforceable*."
-`dxGovernance P6`: "TimeDelay in `setAdminPermission` is not *enforceable*."
+Static analysers and consistency detectors look for guards that are **absent**.
+This lens looks for guards that are **present, correct-looking, and completely
+inert**.
 
 > For every check in the contract, answer two questions in writing:
 > **who is this meant to constrain**, and **what is the cheapest way for that
 > party to do the thing anyway?**
 
-If you cannot answer the second question with "there isn't one," you have a
-finding — regardless of whether the `require` is syntactically perfect.
+If you cannot answer the second with "there isn't one," you have a finding —
+regardless of whether the `require` is syntactically perfect. The useful word
+for the finding is **unenforceable**, not "missing check": the check is right
+there, and a report that calls it missing will be dismissed.
 
 ---
 
@@ -28,172 +24,188 @@ finding — regardless of whether the `require` is syntactically perfect.
 
 ### 1. The constrained party controls the constraint
 
-The purest form. A limit is only a limit if the limited party cannot move it.
+A limit is only a limit if the limited party cannot move it.
 
-- `Toucan-Celo-Bridge T2` — "Cooldown period is unenforceable as it serves to
-  limit the admin but the admin himself controls it."
-- `Blindex F1` — an oracle updated by an off-chain bot, with no safeguard
-  beyond checking the caller's address. Omega calls it "one of the weakest
-  links in the system" and asks for a bounded rate of change (≤1% per 24h).
-  Note the *resolution*: an updater role capped at 1%/day was added, but "the
-  owner still has the ability to make any changes to the oracle, which is a
-  potential security concern" — Omega does not accept a partial fix as a fix.
-- `Delphia C6` — "SCO operators control the price of the coordination tokens."
+```solidity
+uint256 public cooldown;                              // limits the admin
+function setCooldown(uint256 c) external onlyAdmin;   // …set by the admin
+```
 
-**Test:** for each parameter that bounds behaviour, find its setter and its
-access control. If the setter is reachable by the party the parameter bounds —
-directly, or through a role they can grant themselves — the bound is decorative.
+**Detection:** for every parameter that bounds behaviour, resolve its setter and
+that setter's access control. Then ask whether the bounded party can reach it —
+directly, through a role they can grant themselves, through an upgrade, or
+through governance they control. If yes, the bound is decorative.
+
+**Reviewing partial fixes:** a common response is to split the role — an
+"updater" that is rate-limited, plus an "owner" that is not. That is not a fix.
+If the unbounded path still exists and the same principal can reach both, the
+original finding stands. Say so explicitly rather than accepting the split.
 
 ### 2. A second address defeats it
 
-Per-account state is not per-person state.
+Per-account state is not per-person state. Addresses are free.
 
-- `Blindex P2` — a 90% penalty for redeeming within `minimumMintRedeemDelay`.
-  The user transfers the tokens to another account they own and redeems from
-  there. Omega's recommendation is to *remove the penalty*, not patch it. The
-  partial fix (revert instead of penalise) was still rejected: "the limitation
-  is easily circumvented by transferring tokens to a different account."
-- `Giza-ARMA-May A3` — a `top_up` endpoint writing a `Deposit` record if the
-  amount ≤ wallet balance; call it repeatedly with a small balance to inflate
-  the recorded deposit, which drives fee calculation.
+```solidity
+require(block.number > lastMint[msg.sender] + DELAY);  // move tokens, use a fresh address
+```
 
-**Test:** does the check key off `msg.sender`, an account, or a token balance?
-All three are cheap to duplicate. Sybil-resistance requires something scarcer.
+Anything keyed on an account, a balance, or a token holding is cheap to
+duplicate: penalties, cooldowns, per-user caps, one-shot bonuses, first-N
+rewards. The same applies off-chain to per-record limits where the caller can
+create records.
+
+**Detection:** ask what scarce resource the check is keyed to. If the answer is
+"an address" or "a balance," it is not scarce. Genuine Sybil resistance needs
+something costly — locked capital with a real opportunity cost, an identity
+attestation, or a global rather than per-account counter.
+
+**Recommendation posture:** when a mechanism cannot be made Sybil-resistant,
+recommend **removing** it rather than patching. A penalty that only catches
+unsophisticated users is worse than no penalty.
 
 ### 3. The check runs but its result is thrown away
 
-Mechanically the most embarrassing, and Omega finds them at high severity.
+Mechanically trivial, frequently high severity.
 
-- `Giza-Pendle CPP1` **[high]** — `get_swap_transaction` calls
-  `_validate_slippage` to clamp slippage to `MAX_SLIPPAGE`, "however, the call
-  does not save the result into the `slippage` variable … meaning the slippage
-  check does not take effect."
-- `Giza-Pendle M1` — the condition is inverted:
-  `if not opt_res or self._is_delta_apr_enough(opt_res)` where
-  `_is_delta_apr_enough` returns `True` when the APR is *not* enough.
-- `Giza-Pendle W1` — the setter for `selected_chains` calls `_mark_dirty` with
-  the `selected_protocols` key, so the new value is never persisted.
-- `OpusEdu PP2` — "Allowed slippage is not enforced."
-- `Altitude UVS1` — reads `swapPairs[assetTo][assetFrom]` while the mapping is
-  written as `swapPairs[assetFrom][assetTo]`; every lookup reverts or returns
-  the wrong pair.
+```python
+_validate_slippage(slippage)          # returns the clamped value — discarded
+tx = build(amount_out_min=slippage)   # uses the unclamped original
+```
 
-**Test:** for each validator/clamp/normalizer function, trace its return value
-to a use. For each boolean guard, evaluate the predicate's *name* against its
-implementation — `_is_delta_apr_enough` returning `True` on "not enough" is a
-naming bug that becomes a logic bug at every call site.
+Four variants, all worth grepping for:
+
+| Variant | Tell |
+|---|---|
+| **Return value discarded** | A validator/clamp/normalizer called as a statement, not an assignment |
+| **Polarity inverted** | `if (isEnough(x))` where `isEnough` returns true when it is *not* enough |
+| **Wrong key written** | A setter that marks, caches or invalidates under a neighbouring field's key |
+| **Wrong key read** | A two-dimensional mapping written `m[a][b]` and read `m[b][a]` |
+
+**Detection:** for every function whose name is a predicate or a transform,
+trace its return value to a use. For every predicate, read its *name* against
+its *implementation* — a naming inversion becomes a logic bug at every call
+site, and is invisible when reading the call site alone. For every symmetric-
+looking mapping, check writes and reads agree on index order.
 
 ### 4. The flag is set but nothing reads it
 
-- `dxGovernance F2` — `revocable = true` is passed when creating a
-  `TokenVesting`. But the vesting contract's owner is its deployer, which is
-  the factory, which has no function that calls `revoke`. "So no unclaimed
-  token can be removed, whether the revoke flag is set to true or not."
-- `dxGovernance P8` — "Unenforced requirement that `timeDelay > 0`."
-- `Giza-Pendle JM1` — code references `DEFAULT_THRESHOLD`, which does not exist.
-- `Gnosis XDFB4` — "Use of ignored token parameter may lead to unexpected
-  behavior."
+```solidity
+new Vesting(beneficiary, /* revocable */ true);   // nothing ever calls revoke()
+```
 
-**Test:** grep every configuration flag and constructor parameter for reads.
-Zero reads, or reads only in a branch that is unreachable, is a finding.
+Configuration that no code path consumes: a `revocable` flag whose revoker is
+unreachable, a `timeDelay` never compared against, a constant referenced by a
+name that does not exist, a function parameter silently ignored by the body.
+
+**Detection:** enumerate every constructor argument, config struct field and
+state flag, then grep for reads. Zero reads — or reads only inside an
+unreachable branch — is a finding. Also check ownership: a flag whose effect
+requires a call from an owner that is a *factory contract with no such function*
+is inert even though the flag is read.
 
 ### 5. The allowlist enumerates the wrong thing
 
-Trying to bound an *effect* by pattern-matching a *syntax*.
+Trying to bound an **effect** by pattern-matching a **syntax**.
 
-`dxGovernance W1` is the canonical example. A permission registry limits how
-many ERC-20 tokens a proposal can move by extracting the function selector from
-calldata and, if it is `transfer` or `approve`, decoding the amount. Omega's
-demolition:
+```solidity
+bytes4 sel = bytes4(callData);
+if (sel == IERC20.transfer.selector || sel == IERC20.approve.selector) {
+    amount = abi.decode(callData[4:], (uint256));
+    require(amount <= limit);
+}
+```
 
-> There are ways of sending and approving tokens that are different from these
-> two methods. Such methods live within the ERC20 standard (such as
-> `transferFrom`), but also other methods are commonly used (such as
-> `safeTransfer`, `increaseAllowance`). In addition, calls to transfer tokens
-> could be triggered by calling other contracts.
+This is unfixable in principle, and saying so is the finding. `transferFrom`,
+`increaseAllowance`, `permit`, a `safeTransfer` wrapper, a multicall, a token
+with bespoke transfer functions, or any indirection through a third contract all
+move value without matching. A token contract may define arbitrarily many
+functions that transfer.
 
-And the recommendation states the general principle:
+**The general fix, worth internalising:** *measure the effect, not the syntax.*
+Snapshot balances and allowances before the call, compare after, enforce the
+limit on the delta.
 
-> Instead of trying to determine from the function signature and its arguments
-> how many tokens were sent (a task that is impossible as the ERC20 contract
-> can define any number of functions that do token transfer), **check the
-> difference between the token balance and approvals before and after the
-> transaction is executed.**
-
-Measure the effect, not the syntax. Related: `dxGovernance P9` (permissions
-specific to token transfer/approval are silently ignored when both an asset and
-a function signature are set).
-
-**Test:** if a guard inspects calldata, selectors, or function names, enumerate
-the ways to achieve the same effect that it does not match — including
-indirection through another contract.
+**Detection:** any guard that inspects selectors, function names, calldata
+layout or event signatures. Enumerate ways to achieve the same effect that it
+does not match. There will be some.
 
 ### 6. Coverage is incomplete — the guard protects some paths, not all
 
-- `Altitude C5` — safety mode disables `borrow` and `claimRewards`. Omega
-  enumerates what it *should* also disable: `withdraw`, `transfer`,
-  `liquidateUsers`, `depositAndBorrow`, `repayAndWithdraw` — every function
-  whose correctness depends on the price feed that safety mode exists to
-  distrust. (And separately notes `claimRewards` need not be disabled, since it
-  does not depend on prices at all.)
-- `Backed-Token-ERC4626 WBT1` — `_deposit` mints via
-  `_beforeTokenTransfer(address(0), receiver, …)`. Since `from == address(0)`
-  on mint, only the *receiver* is sanctions-checked, never the depositor. A
-  sanctioned user launders through the vault into a clean address.
-- `Backed-Finance G2` — "Blacklist does not extend to spender in
-  `transferFrom`."
-- `dxGovernance V9` — "Incomplete check in input value `voteDecision`."
-- `Giza-Pendle ABA3` — a state check excludes three states when it should
-  admit only one.
+The guard is real and effective; it just is not everywhere it needs to be.
 
-**Test:** for each guard, list every function that depends on the property the
-guard protects, then diff against the functions that actually carry it. This is
-the same consistency argument **[Q]** `semantic-guard-analysis` automates —
-run both.
+Two recurring shapes:
+
+*The unguarded sibling.* A property is enforced on some functions and not on
+others that depend on it equally. The systematic version: when a "safety mode"
+or pause exists to distrust a price feed, **every** function whose correctness
+depends on that feed must be disabled — withdraw, transfer, liquidate, and the
+composite entry points — not just the two obvious ones. Enumerate by dependency,
+not by intuition. (Conversely: functions that do *not* depend on it should not be
+disabled, and pointing that out strengthens the finding.)
+
+*The hook that sees the wrong party.* Where a check lives in a transfer hook, mint
+and burn pass a sentinel:
+
+```solidity
+_beforeTokenTransfer(address(0), receiver, amount);   // mint: `from` is 0
+```
+
+A sanctions, blacklist or allowlist check written against `from`/`to` therefore
+never sees the *caller* on a mint path. A restricted party calls
+`deposit(assets, cleanAddress)` and passes through. The same gap appears in any
+delegated or meta-transaction path, where the submitter is distinct from both
+`from` and `to`.
+
+**Detection:** for each guard, list every function that depends on the property
+it protects, then diff against the functions that actually carry it. For hook-
+based guards, enumerate every path reaching the hook and identify which party
+each one leaves unchecked. This is the same consistency argument **[Q]**
+`semantic-guard-analysis` automates — run it first, then apply this to what it
+clears.
 
 ### 7. Two identical doors, one lock
 
-- `Gnosis XDFB1` — `executeSignaturesUSDS` and `executeSignatures` have
-  *identical* signature checks, so the same bridged message opens either. Both
-  are permissionless. An attacker front-runs to choose which token the user
-  receives. Compare `executeSignaturesGSN`, which does carry
-  `require(isTrustedForwarder(msg.sender))` — the codebase's own inconsistency
-  is the tell.
-- `Blindex P9` — two redeem functions, same collateral out, one silently omits
-  the BDX tokens.
-- `Karpatkey K1` **[high]** — `cancelSubscription` and `cancelRedemption` never
-  validate the *type* of the request ID passed. Create a redemption request
-  with 1 wei of shares at an inflated price, then pass its ID to
-  `cancelSubscription` and drain the subscription escrow. A shared ID namespace
-  with no type tag.
+```solidity
+function executeA(bytes sig) external { _verify(sig); _doA(); }
+function executeB(bytes sig) external { _verify(sig); _doB(); }
+```
 
-**Test:** find near-duplicate entry points. Diff their guards. Any asymmetry is
-either the bug or the evidence for it.
+Identical authorization, different effect, both permissionless. The
+authorization does not determine the outcome, so whoever calls first chooses it.
+
+The related shape is a **shared identifier namespace with no type tag**:
+
+```solidity
+function cancelSubscription(uint256 id) external {
+    Request storage r = requests[id];      // never checks r.kind == SUBSCRIPTION
+    refund(r.asset, r.amount);
+}
+```
+
+If subscription and redemption requests draw IDs from one counter, an attacker
+constructs a cheap request of one kind and passes its ID to the other kind's
+handler, which refunds against fields it never validated.
+
+**Detection:** find near-duplicate entry points and diff their guards — any
+asymmetry is either the bug or the evidence for it. Where the codebase's own
+third variant *does* carry an extra check, that inconsistency is your strongest
+argument. For shared ID spaces, confirm every consumer validates the discriminant.
 
 ---
 
-## Reporting
+## Writing it up
 
-Omega's phrasing is worth copying because it separates the two claims:
+Separate the two claims, in this order:
 
-> `P2. Redeem penalty of 90% is unenforceable [medium]`
->
-> Users that call one of the various redeem functions within
-> `minimumMintRedeemDelayInBlocks` after calling one of the mint functions will
-> receive a 90% penalty. **The current implementation of the penalty is however
-> not enforceable, since a user can redeem within the delay period by
-> transferring the tokens to a different account they own, and redeem from that
-> account.**
+> Users who redeem within the delay window incur a 90% penalty. **The penalty is
+> however not enforceable, since a user can transfer the tokens to a different
+> account they control and redeem from there.**
 
-First the intent, then the bypass. Do not write "missing check" — the check is
-right there, and the client will push back. Write *what the check was for* and
-*the concrete sequence that defeats it*.
+Intent first, then the concrete bypass sequence. Never "missing check."
 
-**Recommend removal when the guard cannot be made to work.** Omega does this
-repeatedly — `Blindex P2` ("we recommend removing the 90% penalty logic"),
-`Delphia C5`, `dxGovernance F2` ("set the flag to false for clarity"). A
-security control that does not control anything is worse than none, because it
-buys false confidence.
+**Recommend removal when the guard cannot be made to work.** A security control
+that controls nothing is worse than none, because it buys false confidence from
+the team and from integrators reading the code.
 
 ---
 
@@ -202,16 +214,22 @@ buys false confidence.
 For every `require`, modifier, limit, penalty, cooldown, threshold and flag:
 
 - [ ] Who is it meant to constrain? Written down.
-- [ ] Can that party reach its setter, directly or via a role they can grant?
+- [ ] Can that party reach its setter — directly, via a grantable role, via
+      upgrade, or via governance they control?
 - [ ] Is it defeated by a second address, or by splitting into N transactions?
 - [ ] Is the return value of every validator actually assigned and used?
 - [ ] Does each predicate's name match its polarity?
-- [ ] Does every configuration flag have a code path that reads it?
+- [ ] Do mapping writes and reads agree on index order?
+- [ ] Does every configuration flag have a reachable code path that reads it —
+      and a reachable caller for the effect it enables?
 - [ ] If it matches on selectors or calldata, what equivalent effects slip past?
+      (There will be some — measure the effect instead.)
 - [ ] Does it cover *every* function depending on the property it protects?
+- [ ] For hook-based guards: which party goes unchecked on mint, burn, and
+      delegated paths?
 - [ ] Do near-duplicate entry points carry identical guards?
 - [ ] Is a shared ID namespace type-checked at every consumer?
 
 **Pairs with:** **[Q]** `semantic-guard-analysis` — it finds guards that are
 missing by consistency analysis; this one finds guards that are present and
-inert. Run the automated pass first, then this one over what it clears.
+inert.

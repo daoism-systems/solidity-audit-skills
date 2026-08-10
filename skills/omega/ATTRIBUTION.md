@@ -3,51 +3,39 @@
 ## What was derived, and from what
 
 The skill files in this directory are **original prose written by Daoism
-Systems**. They were derived by reading the public audit archive at
+Systems**. They were derived by studying the public audit archive at
 [github.com/OmegaAudits/audits](https://github.com/OmegaAudits/audits)
-(repository state at commit `a9891e4`, 14 July 2026) and extracting the
-recurring methodology and reasoning patterns.
+(repository state at commit `a9891e4`, 14 July 2026) — 55 reports published
+between March 2021 and July 2026 — and extracting the recurring methodology and
+reasoning patterns.
 
-**No Team Omega report text is reproduced here.** What is carried over is
-factual and methodological: which questions Omega asks, which failure shapes
-recur across engagements, how they structure scope and severity, and how they
-run the preliminary→resolution→final loop. Finding identifiers (`Blindex P2`,
-`Karpatkey K1`, …) are cited as *pointers into the primary source* so a reader
-can verify each claim against the original PDF.
+**No Team Omega report text is reproduced here, and no skill references a
+specific report, client or finding.** The skills are written at the level of
+abstraction of pattern recognition: recognizable code shapes, structural
+questions, detection heuristics and fix patterns. What carries over is
+methodological — which questions are worth asking of every contract, which
+failure shapes recur across unrelated codebases, and how to structure scope,
+severity and the resolution loop.
 
-## Corpus
+That choice is deliberate. A skill that teaches an agent to recognize *the
+shape* generalizes to code it has never seen; a skill that catalogues past
+findings teaches it to look backwards.
+
+## Corpus studied
 
 | | |
 |---|---|
 | Reports | 55 (2021-03 → 2026-07) |
-| Findings catalogued | 834 |
+| Findings read | 834 |
 | By severity | 2 critical · 46 high · 105 medium · 332 low · 349 info |
-| Named auditors | Jelle, Ben (per the Methodology sections) |
 | Report format | PDF; text extracted with `pypdf` for analysis only |
 
-Six reports could not be auto-parsed into a finding index and were read
-manually: `202106-API3DAO`, `202106-Prime DAO-v1`, `202107-PrimeDAO-v2`
-(2021 reports predating Omega's `ID.` numbering scheme), and `202307-Backed`,
-`202312-ToucanProtocol`, `202407-Inverter IssuanceToken` (summary-only reports
-with no or trivial findings).
-
-## Clients and codebases represented
-
-Derived from the scope sections. This is the population the patterns
-generalize over, and its shape matters when judging transferability:
-
-- **Tokenized RWA / stablecoins** — Backed Finance (9 engagements), Blindex,
-  lsdai, Inverter iTRY
-- **Lending / yield vaults** — Altitude (5), Euler, Yieldnest, Karpatkey
-- **Bridges / cross-chain** — Gnosis Bridge (4), Gnosis Hashi, Toucan Celo,
-  Backed CCIP
-- **DAO governance** — dxDAO (3), PrimeDAO (4), API3, EnterDAO
-- **Off-chain agents & backends** — Giza (5 engagements; Python, not Solidity)
-- **NFT / fractionalization** — Spectre, Fragmint, Everbloom, Society Protocol
-
-Note the last two rows. Omega audits Python backends and frontends alongside
-Solidity, and several skills here reflect that — see
-`omega-external-data-trust`.
+The codebases represented span tokenized RWA and stablecoins, lending and yield
+vaults, bridges and cross-chain messaging, DAO governance, NFT
+fractionalization, and — notably — Python agent backends and frontends audited
+alongside the contracts. That last category is why
+[`omega-external-data-trust`](omega-external-data-trust/SKILL.md) covers
+off-chain service surface, which most Solidity-only skill sets omit.
 
 ## Licensing
 

@@ -5,219 +5,196 @@ description: Audit the boundary where a system accepts data it did not compute �
 
 # External Data Trust
 
-Team Omega audits more than Solidity. Five Giza engagements review Python
-agent backends; bridge audits review relayer assumptions; oracle audits review
-the publisher's failure modes. This skill covers the boundary those reviews
-share: **the moment a value the system did not compute becomes a value it acts
-on.**
+The boundary where a value the system did not compute becomes a value it acts
+on. Applies equally to Solidity oracle reads and to the Python/TypeScript
+backends that increasingly sit behind on-chain agents.
 
-> For every external input, answer three questions: **what is this trusted
-> for**, **what happens if it is wrong or stale**, and **who benefits from it
-> being wrong?**
+> For every external input: **what is this trusted for**, **what happens if it
+> is wrong or stale**, and **who benefits from it being wrong?**
 
 ---
 
 ## 1. The response is not validated against the request
 
-The single most transferable finding in the archive. You send a constraint with
-your request; you must check the response honours it.
+The most transferable pattern here. You send a constraint with your request;
+nothing checks the response honours it.
 
-`Giza-Pendle BE1` — the bridge estimator sends `dstAmountMin` to the Stargate
-API for slippage protection, "however the result from the API is not being
-validated to ensure the API respected the `dstAmountMin` limit." Omega did not
-assume — they ran the call, with `srcAmount=1e18` and
-`dstAmountMin=950e18`, and the API returned `dstAmount: 998499000000000000`,
-far under the stated minimum. The report includes the `curl` and the raw JSON.
+```python
+quote = api.get_quote(src, dst, amount, dst_amount_min=min_out)
+execute(quote.tx)          # quote.dst_amount is never compared to min_out
+```
 
-Their generalisation is the important part: "even if it currently does, it
-should not be assumed as it could become a risk in the future." An API's
-present behaviour is not part of its contract.
+A parameter named `minOut`, `slippageTolerance`, `deadline` or `recipient` in a
+*request* is a hint to the counterparty, not a guarantee. Only an assertion on
+the response is a guarantee.
 
-**Test:** for every request carrying a bound — min out, max slippage, deadline,
-recipient — find the line that re-checks it on the response. If it does not
-exist, the bound is advisory.
+**Detection:** for every request carrying a bound, find the line that re-checks
+it on the response. If it does not exist, the bound is advisory. Verify
+empirically where you can — issue the call with a deliberately unsatisfiable
+bound and observe whether the service honours or ignores it. An API's *present*
+behaviour is not part of its contract either way: even if it currently
+complies, nothing prevents it from changing.
 
-### The compounding variant: protection applied to an unprotected number
+### The compounding variant: protection derived from an unprotected number
 
-`Giza-ARMA B2` **[critical]** — `_approve_and_swap` fetches a quote, then takes
-0.5% off it as slippage protection. But "the quote received already includes a
-slippage with it, which is not checked at all. This renders the whole slippage
-protection essentially obsolete, and allows swaps with just about any degree of
-slippage."
+```python
+quote = get_quote(...)              # already embeds unknown slippage
+min_out = quote.amount * 0.995      # "0.5% slippage protection"
+```
 
-The same mistake recurs across engagements — `Giza-ARMA B5`, `F1` — and Omega's
-recommendation is consistent and worth internalising:
+The 0.5% is applied to a number that is itself unbounded, so the composite
+bound is unbounded. This renders the protection ornamental while looking
+rigorous — which is why it survives review.
 
-> Use the slippage from the quote received, and **only cap** the total slippage
-> at the limit, instead of setting it at the limit *below* the quote.
+**The rule:** a hardcoded tolerance is a **ceiling**, never a **basis**.
 
-A hardcoded percentage is a *ceiling*, never a *basis*. Deriving a bound from a
-number that is itself unbounded gives you no bound at all.
+```python
+min_out = max(quote.amount * (1 - MAX_SLIP), oracle_value * (1 - MAX_SLIP))
+```
+
+Derive the expected value independently, then cap the deviation. Deriving a
+bound from the number you are trying to bound gives you no bound.
+
+The same error appears with fixed percentages chosen by intuition. A hardcoded
+2% cross-chain slippage is both arbitrary and usually far worse than the
+quotable rate; fetch the expected rate and use the constant only as an upper
+limit.
 
 ## 2. Staleness measured on the wrong clock
 
-`Inverter iTRY G1` — the contract reads `latestRoundData()` but ignores
-`updatedAt`, validating only the NAV publication timestamp from a separate
-feed. Omega lays out the failure precisely:
+Feeds carry more than one timestamp, and they prove different things:
 
-> 1. At time t0, NAV is published and immediately pushed on-chain by Redstone
-> 2. At time t1, a new NAV was published, but Redstone fails to push it on-chain
-> 3. As long as the NAV publication date t0 is not expired, the feed returns
->    the price from t0.
+| Timestamp | Proves |
+|---|---|
+| Publisher's own (`publishedAt`, embedded in payload) | when the value was *produced* |
+| On-chain `updatedAt` | when it *reached the chain* |
+| `roundId` monotonicity | ordering, where the feed implements it |
 
-Checking the publication timestamp proves the price was *published* recently.
-It does not prove a *newer* price does not exist. Two different properties.
+Checking only the publisher timestamp proves the value was produced recently.
+It does **not** prove a newer value does not exist. The failure: publisher emits
+at t₀ and the relayer pushes it; publisher emits at t₁ and the relayer fails;
+the consumer keeps serving t₀ as fresh until t₀'s own window expires.
 
-**Test:** for each timestamp the code checks, write down which property it
-proves. Then write down the property you actually need. `updatedAt` (when it
-reached the chain) and the publisher's own timestamp (when it was produced) are
-not interchangeable, and neither implies freshness of the *latest available*
-value.
+**Detection:** for each timestamp the code checks, write down which property it
+proves, then write down the property you actually need. Check `updatedAt`
+against a window matched to the *relayer's* expected cadence, which is typically
+far shorter than the data's validity window.
 
-Also from the same finding, Omega asks for a value sanity check alongside the
-time check: "you are already checking that the price is not equal to 0, but you
-can also check that it is not unreasonably high, e.g. require that the price is
-less than 20% of the previous price." Related: `Karpatkey K6` ("Oracle stale
-price check is too long"), `K12` ("Asset price of zero should revert").
+Pair time checks with **value** sanity checks. Non-zero is not enough; bound the
+permissible move between consecutive readings so a single bad print cannot
+propagate.
 
 ## 3. Independently-sourced fields assumed to correspond
 
-`Inverter iTRY G2` — the feed reads price from one contract and timestamp from
-another "with no verification they correspond to the same data point. If the
-relayer updates them at different times … you could get Thursday's price with
-Friday's timestamp, and erroneously conclude that the price you are reporting
-is not stale."
+Reading a price from one source and its timestamp from another, with nothing
+guaranteeing they describe the same observation. If the two are updated in
+separate transactions, you can pair a stale price with a fresh timestamp and
+conclude, wrongly, that the price is current.
 
-Note the recommendation acknowledges the obvious fix does not work: "Using the
-`roundId` from the response will not work, as the Redstone contracts always
-return a value of 1." Falling back to a tolerance check on the two `updatedAt`
-values is second-best and Omega says so.
-
-**Test:** whenever two values are read from separate calls or separate
-contracts and then used together, ask what guarantees atomicity. Usually
-nothing does.
+**Detection:** whenever two values are read from separate calls or separate
+contracts and then used *together*, ask what guarantees atomicity. Usually
+nothing does. Note that the obvious fix — correlate by round ID — silently fails
+against feeds that return a constant round ID; verify the discriminator actually
+varies before relying on it, and fall back to a tolerance check on the two
+update times if it does not.
 
 ## 4. Errors swallowed into plausible defaults
 
-`Giza-Pendle G2` **[high]** — the most systemic finding in the archive. Across
-the codebase, failures of external services return values indistinguishable
-from success. Omega tabulates them:
+The most systemic version of this class. Failures of external services return
+values indistinguishable from success:
 
-| Method | Error handling |
-|---|---|
-| `_get_active_markets_by_chain` | Logs error, returns `[]` |
-| `_get_asset_prices` | Logs error, returns `{}` |
-| `is_market_expiring` | Logs warning, returns `False` |
-| `get_market_apr` | Logs warning, returns `0.0` |
-| `check_current_tvl` | Logs any exception, returns `0` |
-| `check_to_execute` | Logs any error, returns `True` |
+| Call | On error | Caller sees |
+|---|---|---|
+| `get_active_markets()` | logs, returns `[]` | "no markets available" |
+| `get_prices()` | logs, returns `{}` | "no prices" |
+| `is_expiring()` | logs, returns `False` | "not expiring" |
+| `get_apr()` | logs, returns `0.0` | "zero yield" |
+| `should_execute()` | logs, returns `True` | **"safe to proceed"** |
 
-> This pattern is dangerous, as many of these values are used upstream as the
-> good values. For example, if `_get_active_markets_by_chain` returns an empty
-> list because the API is slow to respond, the markets from that chain will not
-> be considered in the optimization problem.
+Each is locally reasonable and collectively catastrophic. An empty market list
+from a slow API silently removes a venue from an optimisation; a `0.0` APR
+silently deprioritises a position; and the last row is the worst shape of all —
+**failing open on a go/no-go decision.**
 
-Two things make this a *high*, not a code-quality note. First, `check_to_execute`
-returning `True` on error means "the job is considered safe to execute, even if
-the constraints are not met" — the default is fail-*open*. Second, Omega points
-out that swallowed `ValidationError`s from the database "can point to a
-systematic failure in writing data to the database correctly. If that is the
-case … this is something to be resolved, not simply logged."
-
-The recommendation:
-
-> Raise errors where appropriate instead of only logging them. If this is a
-> problem for reasons of liveness or otherwise, at least return values that are
-> distinguishable from "good" values (e.g. `None` instead of an empty list) —
-> but take care to handle these error values properly upstream.
-
-**Test:** for every `except` / `catch` / unchecked call, ask what the caller
-does with the returned value, and whether the failure default is fail-open or
-fail-closed. Empty collections, zero, `False` and `0.0` are almost always
+**Detection:** for every `except`/`catch`/unchecked call, ask what the caller
+does with the value, and whether the failure default is fail-open or
+fail-closed. Empty collections, `0`, `False` and `0.0` are almost always
 indistinguishable from legitimate results.
 
-Solidity equivalents: `PrimeDAO-Seed S2` and `Stackly G2` (unchecked
-`transfer`/`transferFrom` return values), `Altitude HM3` ("missing error check
-on recognise farm rewards"), `Giza-Pendle O5` ("failing to apply a constraint
-is silently ignored"), `Backed BR1` (code branches on a `False` return from a
-function that reverts instead of returning `False` — so the branch is dead).
+**Recommendation:** raise. Where liveness genuinely forbids raising, return a
+value that is *structurally* distinguishable — `None` rather than `[]` — and
+verify every caller handles it. Note separately that swallowed schema or
+validation errors may indicate the system is *writing* malformed data, which is
+a defect to fix rather than log.
+
+Solidity equivalents: unchecked `transfer`/`transferFrom` return values;
+low-level `call` whose success flag is ignored; a `try/catch` whose catch block
+proceeds as though nothing failed; and branching on a `false` return from a
+function that reverts rather than returning `false`, which makes the branch dead
+code.
 
 ## 5. The beneficiary supplies the number
 
-`Giza-ARMA B6` / `Giza-Pendle ABA1` — the user passes their deposit amount to
-`activate`, and "this amount is not verified at any point." It then feeds TVL,
-APR and fee calculations. Chain of consequences: `B6` → `B7` (TVL flawed) →
-`B3` **[high]** (any user can inflate their fake deposit past the TVL cap and
-halt agent activation for everyone).
+A caller passes a value that feeds accounting, fees, limits or eligibility, and
+nothing verifies it against reality.
 
-Omega's fix is not "validate the number" — it is *stop asking for it*:
+The consequence chain is characteristic and worth tracing all the way out:
+unvalidated per-user input → a protocol-wide aggregate built from it →
+a limit enforced against that aggregate → any single user can trip the limit
+for everyone. A trust defect becomes a denial of service two hops later.
 
-> Instead of asking the user to pass their deposit amount in the request, it
-> will be safer and more accurate to use the balance as the deposit amount.
-
-Related: `Giza-ARMA F2` (fee calculated on the backend but *paid* on the
-frontend, with no verification — so users simply do not pay).
-
-**Test:** for every value a caller supplies that feeds a security or economic
-decision, ask whether the system could read it instead of being told it. If it
-can, it should.
+**Detection:** for every value a caller supplies that feeds a security or
+economic decision, ask whether the system could **read** it instead of being
+told it. If it can, it should. Prefer "observe the balance" over "accept the
+declared amount"; prefer settling a fee in the same transaction that grants the
+benefit over trusting a separate client-side payment step.
 
 ## 6. External identifiers assumed unique or stable
 
-`Giza-Pendle O1` **[high]** — market names used as unique keys; the Pendle API
-returns two markets named `wstETH` on mainnet. Recommendation: key on
-`(address, chainId)`.
+Two distinct assumptions, both usually unstated:
 
-`EnterDAO S1` **[high]** is the on-chain analogue — the size of a staked
-Decentraland estate is read from the external registry at both stake and
-withdraw time. If it changed in between, withdraw reverts and the estate is
-stuck; an attacker can *cause* the change by adding land to the staked estate.
-Fix: snapshot the value at stake time, do not re-read it.
+- **Unique** — a name, symbol or label from an external registry used as a
+  primary key. Third-party systems rarely guarantee uniqueness of human-readable
+  fields. Key on `(address, chainId)` instead.
+- **Stable** — a value read at time A and re-read at time B, where the code
+  requires them to be equal. If a third party can change it in between, the
+  second read breaks the operation. Where an attacker can *cause* the change,
+  it is an attack rather than an edge case.
 
-**Test:** every key drawn from an external system — is uniqueness guaranteed by
-that system, or assumed? Every value read twice across time — is it required to
-be equal, and what enforces that?
+**Fix pattern for stability:** snapshot the value at the first interaction and
+use the snapshot thereafter, rather than re-deriving from the external source.
 
 ## 7. Off-chain service and backend surface
 
-When the scope includes a backend (Omega's Giza engagements), also check:
+When scope includes a backend, the audit surface extends past the contracts:
 
-- **Authorization binds the session to the subject.** `Giza-ARMA B1`
-  **[critical]** — the JWT proves a user is logged in but is never checked
-  against the wallet the endpoint acts on: "any user which is logged in can …
-  activate, run and deactivate the agent of any other user."
-  `Giza-Pendle P1` — two auth fields, `userAddress` and `wallet`, only the
-  first verified, no check they are equal.
-- **Key scope.** `Giza-Feb2025 M1` — "Jobs API key can access any endpoint of
-  any wallet"; `M8` — "Data endpoints don't require authentication";
-  `B4` — user tokens and job keys are interchangeable.
-- **Timing-safe comparison.** `Giza-Feb2025 M7` — "Jobs API key validation is
-  vulnerable to time analysis."
-- **Determinism.** `Giza-Feb2025 C2` — "Query in `create_vaults` may miss some
-  vaults, is indeterministic."
-- **Freshness of the decision inputs.** `Giza-Feb2025 C1` **[high]** —
-  "Decision processes may use outdated information on vault performance."
-- **Logging.** `Giza-ARMA F3` — "Logs should exclude any sensitive data."
-- **Dependency pinning.** `Giza-Pendle PP` — unpinned `pyproject.toml` makes
-  builds unpredictable "and makes it easier for compromised new package
-  versions to be included in the build."
+- **Authorization must bind the session to the subject.** A token proving
+  *someone* is authenticated is not a token proving *this* principal may act on
+  *that* account. Check the identity in the credential against the resource
+  identifier in the request — and where two request fields can both denote the
+  subject, check they agree rather than validating whichever is present.
+- **Key scope.** Service/job credentials that can reach any user's resources;
+  endpoints that omit authentication entirely; user tokens and service tokens
+  accepted interchangeably.
+- **Timing-safe comparison** for secret material.
+- **Determinism.** Queries whose result set depends on ordering, pagination or
+  concurrent writes, used where completeness is assumed.
+- **Freshness of decision inputs.** Automated decisions taken against cached
+  state that may predate the last state-changing action.
+- **Logging.** Secrets, keys and personal data excluded.
+- **Dependency pinning.** Unpinned dependencies make builds irreproducible and
+  widen supply-chain exposure.
 
 ## 8. Read the integrated protocol's own documentation
 
-Some findings are invisible from the code under review.
+Some findings are invisible from the code under review. A rate function may be
+correct for one class of underlying and wrong for another; a TWAP window may be
+shorter than the integrated protocol recommends; a market may be assumed to use
+particular assets without verifying it does.
 
-`Altitude SPP1` — the strategy calls `getPtToSyRate` for its TWAP. Pendle's
-docs say SY tokens are not always 1:1 wrappers of the underlying, and
-specifically are not for stablecoin-wrapping SY — "which presumably are the
-main target use case for the current system." The correct call is
-`getPtToAssetRate`.
-
-`Altitude SPB2` — "TWAP duration is shorter than what Pendle recommends."
-`Altitude SM2` — "strategy expects the Morpho market to use supply and borrow
-assets without verifying it does."
-
-**Test:** for each integrated protocol, read its integration guide and list the
-assumptions it warns about. Check each against the code.
+**Detection:** for each integrated protocol, read its integration guide and list
+the assumptions and caveats it explicitly warns about. Check each against the
+code. This is the highest-yield activity that pure code review cannot produce.
 
 ---
 
@@ -225,18 +202,22 @@ assumptions it warns about. Check each against the code.
 
 - [ ] Every requested bound re-verified on the response
 - [ ] No protection derived as a delta from an unbounded quote — caps only
-- [ ] Staleness checked on the timestamp that proves the needed property
-- [ ] Value sanity bounds (not just non-zero) on oracle reads
-- [ ] Fields from separate sources correlated before joint use
+- [ ] Expected values derived independently before tolerance is applied
+- [ ] Staleness checked on the timestamp that proves the property you need
+- [ ] Relayer-cadence window checked, not just data-validity window
+- [ ] Value-movement sanity bounds, not just non-zero
+- [ ] Fields from separate sources correlated; correlating discriminator
+      verified to actually vary
 - [ ] No error path returns a value indistinguishable from success
-- [ ] Failure defaults are fail-closed, especially for go/no-go decisions
+- [ ] Failure defaults fail-closed, especially on go/no-go decisions
 - [ ] No security or economic decision rests on a caller-supplied number that
-      could be read instead
-- [ ] External identifiers proven unique; re-read values proven stable or
-      snapshotted
+      could be observed instead
+- [ ] Consequence chains traced from unvalidated input through aggregates to
+      limits
+- [ ] External identifiers proven unique; re-read values snapshotted
 - [ ] Backend: session bound to subject; key scope minimal; comparisons
       timing-safe; queries deterministic; dependencies pinned; logs scrubbed
-- [ ] Integrated protocols' own docs read and their stated assumptions checked
+- [ ] Integrated protocols' own docs read and their stated caveats checked
 
 **Pairs with:** **[Q]** `oracle-flashloan-analysis` for manipulation mechanics
 and oracle trust-model classification — this skill covers the *integration*
