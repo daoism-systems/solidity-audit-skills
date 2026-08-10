@@ -1,17 +1,17 @@
 ---
 name: omega-audit-workflow
-description: Run a full smart-contract audit engagement — scope as a commit diff, two independent passes merged into one report, compile/deploy/test the code rather than only reading it, triage static-analysis output instead of pasting it, organize findings per-file with ID prefixes and a General section, and close the loop with a preliminary report, a client fix commit, and a verified per-issue Resolution. Use when starting an audit, deciding how to structure a review, writing up findings, re-auditing a codebase you have reviewed before, or reviewing fixes.
+description: Orchestrate a full smart-contract audit engagement — scope as a commit diff, two independent review passes run as parallel subagents and reconciled into one report, compile/deploy/test the code rather than only reading it, triage static-analysis output instead of pasting it, organize findings per-file with ID prefixes and a General section, and close the loop with a preliminary report, a client fix commit, and a verified per-issue Resolution. Use when starting an audit, deciding how to structure a review, writing up findings, re-auditing a codebase you have reviewed before, or reviewing fixes.
 ---
 
 # Audit Workflow
 
-The process layer. Use this to run the engagement; use the other seven skills
-in this set as the lenses applied during Phase 3.
+The process layer, and the orchestrator for this skill set. Use it to run the
+engagement; the other seven skills are the lenses each Phase 3 pass applies.
 
 ```
 1. Fix scope        → exact repo, exact commit(s), exact file list
 2. Build & run      → compile, deploy, test; run static analysis; triage
-3. Review           → two independent passes, per-file, applying the lenses
+3. Review           → two independent passes as parallel subagents, then reconcile
 4. Preliminary      → deliver findings before any fixes exist
 5. Client fixes     → client returns a commit hash
 6. Verify & close   → re-audit the fix commit, write per-issue Resolution
@@ -76,17 +76,100 @@ extortion finding, and you only learn that by building it.
 API or protocol, call it directly with adversarial parameters and record the
 response. Observed behaviour beats documented behaviour.
 
-## Phase 3 — Two independent passes
+## Phase 3 — Two independent passes (orchestrated)
 
 > Two reviewers who have not discussed the code find different things.
 
-Review independently, then merge. If you are one agent, simulate this honestly:
-two passes with different entry points — one bottom-up from the data structures
-and state variables, one top-down from the external entry points — each written
-down *before* reading the other. The value is in the independence, so do not
-let the second pass read the first's notes.
+This phase is **run as subagents**, not inline. Independence is the whole point
+and it cannot be faked inside one context: once you have written a finding, you
+cannot un-see it, and the second "pass" degrades into confirming the first.
+Separate contexts give you the real thing.
 
-**Order the review by file, not by bug class.** Walk the files; apply the lenses
+You are the **orchestrator** for this phase. Spawn the passes, wait, then
+reconcile. Do not review the code yourself while they run — an orchestrator who
+has formed its own view will anchor the reconciliation.
+
+**Runtime requirement.** This phase needs the `Agent` tool. If it is unavailable
+(some runtimes), skip the orchestration and fall back to sequential simulation:
+two passes with different entry points, the first written to a file and *not
+re-read* before the second is complete. Say in the report which mode was used —
+sequential simulation is weaker and the reader should know.
+
+### Turn 1 — Prepare the bundle
+
+Assemble the review context once, into files, so each pass reads a bundle rather
+than re-deriving scope. In one Bash command:
+
+1. `{bundle}/scope.md` — the Phase 1 scope record: repo, commit(s), file list,
+   normalized LOC, plus the Phase 2 build results (test pass/fail counts,
+   compiler warnings, coverage gaps, triaged static-analysis survivors).
+2. `{bundle}/source.md` — every in-scope file, each under a `### path` header in
+   a fenced block. Exclude `test/`, `mocks/`, `interfaces/`, `lib/` unless they
+   are in scope; note the exclusion in `scope.md`.
+3. `{bundle}/context.md` — client-supplied specs, design docs, and the
+   integration documentation for every third-party protocol the code touches.
+   This is the material that produces findings pure code review cannot.
+4. `{bundle}/history.md` — **repeat engagements only.** Prior reports, with every
+   open finding and every previously-resolved finding listed by ID.
+5. `{bundle}/finding-format.md` — copy
+   [references/finding-format.md](references/finding-format.md) in verbatim. Both
+   passes must emit the same shape or the merge cannot be mechanical.
+
+Print the line count of each bundle file. Do not inline source into agent
+prompts.
+
+### Turn 2 — Spawn the passes
+
+In **one message**, spawn these as parallel background agents
+(`run_in_background: true`, `subagent_type: "general-purpose"`). Prompts are in
+[references/pass-prompts.md](references/pass-prompts.md) — use them verbatim,
+substituting real paths.
+
+| Agent | Entry point | Gets |
+|---|---|---|
+| **Pass A** | Bottom-up — state variables and data structures first, then who writes them | scope, source, context |
+| **Pass B** | Top-down — external entry points first, then what they reach | scope, source, context |
+| **Pass R** | Regression — prior findings only. *Repeat engagements only; skip otherwise* | scope, source, history |
+
+Both A and B apply **all seven lenses** to the **full scope**. Do not split the
+lenses between them and do not split the files between them — that produces two
+partial reviews whose disagreement means nothing. Their divergence is the
+product, and it only has meaning if both had the opportunity to find everything.
+
+Pass R is different: it is a checklist task, not a discovery task, so it needs no
+independence and can be told exactly what to look for.
+
+**Neither A nor B may see the other's output, then or later.**
+
+### Turn 3 — Wait
+
+Proceed only when every spawned agent has notified completion. Do **not** poll,
+sleep, or start reconciling partial results.
+
+While waiting, do nothing that forms an opinion on the findings. Finishing the
+Phase 1 scope write-up or the report skeleton is fine.
+
+### Turn 4 — Reconcile
+
+Merge per [references/merge-protocol.md](references/merge-protocol.md). The short
+version, and the part that differs from a specialist fan-out:
+
+- **Both passes found it** → strongest signal in the engagement. Two independent
+  reviews converging is worth more than either one's confidence score. Promote.
+- **One pass found it** → the expected case, not a weak one. Roughly half of real
+  findings come from exactly one reviewer. Adjudicate on the evidence, never
+  discount for being unconfirmed.
+- **The passes disagree** → the highest-value artifact here. One says a guard
+  holds, the other says it does not. Resolve it *in the code*, and record the
+  reasoning — a disagreement between two competent reviews usually marks either a
+  real bug or genuinely unclear code, and both are reportable.
+
+Never drop a finding because only one pass raised it. That is the failure mode
+this phase exists to prevent.
+
+### Review order within a pass
+
+**By file, not by bug class.** Each pass walks the files and applies the lenses
 to each:
 
 | Lens | Load |
@@ -110,7 +193,7 @@ code review cannot produce.
 **For repeat engagements, re-check the prior reports.** Two checks: findings
 still open, and findings previously resolved that have since **regressed**. Both
 belong in the report, and the second is the one only a carried-forward review
-can catch.
+can catch. This is Pass R's entire job.
 
 ## Phase 4 — Severity
 
@@ -224,12 +307,20 @@ Build
 - [ ] Dependency advisories checked
 - [ ] PoC written for every non-obvious mechanism
 
-Review
-- [ ] Two independent passes with different entry points, merged
-- [ ] Every file walked; findings ID'd per-file, plus a General section
-- [ ] Integrated protocols' documentation read and assumptions checked
-- [ ] All seven lenses applied
-- [ ] Previously-resolved findings checked for regression
+Review (Phase 3 orchestration)
+- [ ] Bundle built: scope, source, context, finding-format (+ history if repeat)
+- [ ] Pass A and Pass B spawned in one message, parallel, background
+- [ ] Both passes given the FULL scope and ALL seven lenses — not split between them
+- [ ] Pass R spawned if this is a repeat engagement
+- [ ] Orchestrator formed no independent view while passes ran
+- [ ] Waited for every completion notification; no polling, no partial merge
+- [ ] Neither pass saw the other's output, at any point
+- [ ] Contested items resolved in the code, not by averaging or dropping
+- [ ] No finding discounted for being raised by only one pass
+- [ ] Leads promoted or retired, each with a stated reason
+- [ ] Cleared lists intersected, not unioned
+- [ ] Completeness table printed and every raw item accounted for
+- [ ] Fallback mode (sequential simulation) disclosed in the report if used
 
 Write-up
 - [ ] Every finding: mechanism → consequence → Recommendation → Severity + why

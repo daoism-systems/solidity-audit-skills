@@ -19,7 +19,7 @@ the report.
 | **[L]** | `sources/plamen/CLAUDE.md` + `sources/plamen/rules/orchestrator-rules.md` | Phased pipeline: recon → breadth → rescan → depth → chain → verify → skeptic → report. Haltless by design — malformed phases auto-recover. |
 | **[L]** | `sources/plamen/skills/audit-prep/SKILL.md` | 8-phase readiness orchestrator. |
 | **[Q]** | `sources/quillshield/plugins/behavioral-state-analysis/skills/behavioral-state-analysis/SKILL.md` | BSA orchestrator: intent extraction → threat engines → adversarial simulation → Bayesian scoring. |
-| **[O]** | `sources/omega/omega-audit-workflow/SKILL.md` | Engagement-level orchestration: scope as a commit diff, two independent passes merged, build-and-run before reading, static-analysis triage, and which of the seven lenses to apply when. |
+| **[O]** | `sources/omega/omega-audit-workflow/SKILL.md` | Engagement-level orchestration. Phase 3 fans out to two **independent generalist** review subagents (bottom-up from state, top-down from entry points), each applying all seven lenses to the full scope, plus a regression pass on repeat engagements — then reconciles. Contrast with **[P]** `solidity-auditor`, which fans out to 12 *specialists*: there, agreement is expected overlap; here, agreement between two generalists who both saw everything is real evidence. |
 
 ---
 

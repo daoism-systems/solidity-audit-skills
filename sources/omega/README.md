@@ -31,7 +31,7 @@ around them. That is the gap this set fills.
 
 | Skill | Question it asks |
 |---|---|
-| [omega-audit-workflow](omega-audit-workflow/SKILL.md) | How do I run and write up the whole engagement? |
+| [omega-audit-workflow](omega-audit-workflow/SKILL.md) | How do I run and write up the whole engagement? *(orchestrator — spawns the review passes)* |
 | [omega-asset-exit-paths](omega-asset-exit-paths/SKILL.md) | Can every asset get back out? |
 | [omega-enforceability-check](omega-enforceability-check/SKILL.md) | Does this guard actually guard? |
 | [omega-accounting-consistency](omega-accounting-consistency/SKILL.md) | Is this counter right on every path? |
@@ -42,8 +42,20 @@ around them. That is the gap this set fills.
 
 ## How to use
 
-Start with `omega-audit-workflow` — it is the orchestrator and tells you when to
-reach for the other seven. Or load an individual lens directly:
+Start with `omega-audit-workflow`. It orchestrates the engagement and, at
+Phase 3, spawns two **independent review subagents** — one working bottom-up
+from state, one top-down from entry points — each applying all seven lenses to
+the full scope, then reconciles them. A third regression pass runs for repeat
+engagements. Independence cannot be faked inside one context, which is why this
+phase fans out rather than looping.
+
+Its `references/` carry the machinery: verbatim
+[pass prompts](omega-audit-workflow/references/pass-prompts.md), the
+[merge protocol](omega-audit-workflow/references/merge-protocol.md), and the
+shared [finding format](omega-audit-workflow/references/finding-format.md) both
+passes emit.
+
+Or load an individual lens directly:
 
 ```
 @solidity-audit-skills/sources/omega/omega-asset-exit-paths/SKILL.md

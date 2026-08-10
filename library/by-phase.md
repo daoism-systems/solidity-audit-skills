@@ -60,6 +60,7 @@ Find candidate bugs across the full in-scope codebase. Two strategies:
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/trust-gap-agent.md` | Gap-hunter: access × economics × asymmetry seam. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/flow-gap-agent.md` | Gap-hunter: execution × periphery × first-principles seam. |
 | **[O]** | `sources/omega/omega-asset-exit-paths/SKILL.md` | First-pass sweep: inventory every asset the contract can hold and build the ways-in/ways-out table before reading logic closely. |
+| **[O]** | `sources/omega/omega-audit-workflow/SKILL.md` | Phase 3 orchestration — spawns two independent review passes as parallel subagents rather than looping in one context. Prompts, merge protocol and shared finding format live in its `references/`. |
 
 ### Strategy B — Topic-by-topic plugin scan (quillshield)
 
