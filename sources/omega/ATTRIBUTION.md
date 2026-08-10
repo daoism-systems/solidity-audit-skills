@@ -45,11 +45,26 @@ medium finding in full and the low/info findings by title. The second pass read
 all 787 extractable finding bodies and clustered them, which surfaced two
 families the first pass had missed — compliance/transfer-restriction gating and
 standard-conformance — now covered by the two skills named above. Clusters that
-were considered and deliberately **not** given their own skill: governance and
-voting (a protocol domain, not a pattern — it decomposes into the existing
-lenses), reentrancy and CEI ordering (covered by **[Q]**
-`reentrancy-pattern-analysis`), and decimal/scale mismatch (covered by **[P]**
-`math-precision-agent` and **[L]** `dimensional-analysis`).
+were considered and deliberately **not** given their own skill: reentrancy and
+CEI ordering (covered by **[Q]** `reentrancy-pattern-analysis`), decimal/scale
+mismatch (covered by **[P]** `math-precision-agent` and **[L]**
+`dimensional-analysis`), and mechanism/incentive design (covered by **[P]**
+`economic-security-agent`, though it is the strongest remaining candidate).
+
+A third pass re-read the DAO and governance engagements specifically. This
+corrected an error: the first two passes concluded governance was "a protocol
+domain, not a pattern", but that conclusion rested on incomplete evidence —
+**three of the governance reports had never parsed into the finding index and
+so had never been read at all.** They use a 2021-era format with no `ID.`
+prefix on findings.
+
+Reading them surfaced a pattern family with no home in the library:
+time-indexed state — checkpoints, snapshots, epochs, delegation records and
+accrual windows. It is not governance-specific; the same defects appear in any
+staking, vesting or reward system. It is now covered by
+[`omega-time-indexed-state`](omega-time-indexed-state/SKILL.md). The original
+judgement was right that *governance* is a domain rather than a pattern, and
+wrong to stop there.
 
 ## Licensing
 

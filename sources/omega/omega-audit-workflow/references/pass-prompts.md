@@ -39,13 +39,14 @@ This ordering surfaces a specific class of defect: state that two paths
 disagree about, counters updated on some transitions and not others, records
 whose meaning drifts between writer and reader, and fields nothing reads.
 
-Apply ALL NINE lenses to the FULL scope. Load each skill and work through it:
+Apply ALL TEN lenses to the FULL scope. Load each skill and work through it:
 - omega-asset-exit-paths             — can every asset get back out, in every state?
 - omega-enforceability-check         — does each guard actually bind the party it names?
 - omega-accounting-consistency       — is every counter right on every path?
 - omega-external-data-trust          — what is trusted, for what, and who benefits if it's wrong?
 - omega-ordering-and-approval-races  — who profits from reordering?
 - omega-upgrade-diff-review          — what did the diff break? (skip if scope is not a diff)
+- omega-time-indexed-state           — does a read for time T return what was true at T?
 - omega-transfer-restriction-hooks   — which parties does each restriction actually cover?
 - omega-standard-conformance         — does it honour the standards it advertises?
 - omega-repo-hygiene-sweep           — is the repo itself sound?
@@ -114,13 +115,14 @@ that consume someone else's approval, guards present on one entry point and
 absent on its near-twin, and privileged parameters taken from calldata that
 could have been derived from the caller.
 
-Apply ALL NINE lenses to the FULL scope. Load each skill and work through it:
+Apply ALL TEN lenses to the FULL scope. Load each skill and work through it:
 - omega-asset-exit-paths             — can every asset get back out, in every state?
 - omega-enforceability-check         — does each guard actually bind the party it names?
 - omega-accounting-consistency       — is every counter right on every path?
 - omega-external-data-trust          — what is trusted, for what, and who benefits if it's wrong?
 - omega-ordering-and-approval-races  — who profits from reordering?
 - omega-upgrade-diff-review          — what did the diff break? (skip if scope is not a diff)
+- omega-time-indexed-state           — does a read for time T return what was true at T?
 - omega-transfer-restriction-hooks   — which parties does each restriction actually cover?
 - omega-standard-conformance         — does it honour the standards it advertises?
 - omega-repo-hygiene-sweep           — is the repo itself sound?

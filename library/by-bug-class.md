@@ -49,6 +49,7 @@ edge cases (Soroban i128, Sui bit-shift).
 | **[L]** | `sources/plamen/agents/depth-edge-case.md` | ●  Mandatory "always-on boundary checklist" over `{0, 1, max, boundary-1, boundary, boundary+1, empty-container}`. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/zero-state-return/SKILL.md` | ●  Initial zero state + return-to-zero state. |
 | **[Q]** | `sources/quillshield/plugins/input-arithmetic-safety/skills/input-arithmetic-safety/SKILL.md` | ◐  ERC4626 inflation subset. |
+| **[O]** | `sources/omega/omega-time-indexed-state/SKILL.md` | ●  Checkpoints, snapshots, epochs and delegation: append-vs-overwrite, historical reads that return a value true at no point in time, bounded history weaponized into permanent lockout, and discretized rewards that pay for capital the protocol does not hold. |
 
 **Recommended combo:** [L] `depth-edge-case` for systematic enumeration →
 [P] `boundary-agent` for per-call-site 8-corner-case checklist → [L]
@@ -157,6 +158,7 @@ node-client DoS.
 | **[L]** | `sources/plamen/agents/skills/niche/semantic-gap-investigator/SKILL.md` | ●  SYNC_GAP / ACCUMULATION_EXPOSURE / CONDITIONAL / CLUSTER_GAP flags. |
 | **[Q]** | `sources/quillshield/plugins/state-invariant-detection/skills/state-invariant-detection/SKILL.md` | ●  Explicit taxonomy: sum / conservation / ratio / monotonic / synchronization. |
 | **[O]** | `sources/omega/omega-accounting-consistency/SKILL.md` | ●  Counters updated on some transitions but not all, `=` vs `+=`, double counting when the callee already aggregated, reversal paths that skip the total. |
+| **[O]** | `sources/omega/omega-time-indexed-state/SKILL.md` | ●  Checkpoints, snapshots, epochs and delegation: append-vs-overwrite, historical reads that return a value true at no point in time, bounded history weaponized into permanent lockout, and discretized rewards that pay for capital the protocol does not hold. |
 
 **Recommended combo:** [Q] for invariant taxonomy → [L]
 `depth-state-trace` for systematic enforcement verification → [P]
