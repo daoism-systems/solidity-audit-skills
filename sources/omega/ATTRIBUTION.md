@@ -66,6 +66,28 @@ staking, vesting or reward system. It is now covered by
 judgement was right that *governance* is a domain rather than a pattern, and
 wrong to stop there.
 
+A fourth pass audited the extraction itself rather than the reports, by
+comparing the findings recovered per report against the totals each report
+states in its own severity table. That exposed systematic under-extraction —
+worst in the largest report in the archive, where 22 of 96 findings had never
+been read, including four rated high. Re-reading the shortfalls surfaced one
+more family, now covered by
+[`omega-share-and-index-accounting`](omega-share-and-index-accounting/SKILL.md):
+balances derived from a shared scalar rather than stored. It appears
+independently across three unrelated clients — index-based interest tokens,
+multiplier-based rebasing tokens, and a rebasing savings wrapper — which is what
+distinguishes it from a single client's quirk.
+
+The same pass added the fail-open access-control default to
+[`omega-enforceability-check`](omega-enforceability-check/SKILL.md) §4.
+
+**Method note.** Each pass found material the previous one missed, and the
+failures were in extraction rather than in reading: reports whose format the
+parser did not match, and findings the regex dropped silently. Anyone extending
+this work should reconcile against the reports' own stated totals *first* — it
+is the cheapest available check on coverage, and it should have been the first
+thing done rather than the fourth.
+
 ## Licensing
 
 Team Omega's repository carries **no LICENSE file**; the PDF reports are their

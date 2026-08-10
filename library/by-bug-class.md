@@ -34,6 +34,7 @@ language-specific idioms.
 | **[L]** | `sources/plamen/agents/skills/sui/bit-shift-safety/SKILL.md` | ●  Sui Move bit-shift safety. |
 | **[L]** | `sources/plamen/agents/skills/niche/dimensional-analysis/SKILL.md` | ●  Cross-language unit/scale mismatch. |
 | **[Q]** | `sources/quillshield/plugins/input-arithmetic-safety/skills/input-arithmetic-safety/SKILL.md` | ●  Precision loss, rounding, ERC4626 inflation, unsafe casting. |
+| **[O]** | `sources/omega/omega-share-and-index-accounting/SKILL.md` | ●  Derived balances (`shares × multiplier`, `principal × index`): round-trip asymmetry across a lazily-updated scalar, mutating functions that forget the index basis, multipliers that reach an absorbing zero and wipe every balance at once. |
 
 **Recommended combo:** [Q] for catalog → [P] `math-precision` for attacker
 framing → [P] `numerical-gap` for seam bugs → [L] for language-specific
@@ -176,6 +177,7 @@ node-client DoS.
 | **[L]** | `sources/plamen/agents/skills/<lang>/zero-state-return/SKILL.md` | ●  Initial zero state + return-to-zero state residual assets. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/share-allocation-fairness/SKILL.md` | ●  Share allocation fairness. |
 | **[Q]** | `sources/quillshield/plugins/input-arithmetic-safety/skills/input-arithmetic-safety/SKILL.md` | ◐  ERC4626 inflation subset. |
+| **[O]** | `sources/omega/omega-share-and-index-accounting/SKILL.md` | ●  Derived balances (`shares × multiplier`, `principal × index`): round-trip asymmetry across a lazily-updated scalar, mutating functions that forget the index basis, multipliers that reach an absorbing zero and wipe every balance at once. |
 
 **Recommended combo:** [L] `depth-token-flow` is the most thorough →
 [L] `zero-state-return` for vault-share inflation → [P]

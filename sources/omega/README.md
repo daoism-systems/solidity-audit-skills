@@ -1,6 +1,6 @@
 # Omega Skills
 
-Eleven custom skills distilled from the audit methodology of **Team Omega**
+Twelve custom skills distilled from the audit methodology of **Team Omega**
 ([teamomega.eth.limo](https://teamomega.eth.limo/)), derived by studying their
 public report archive. See [ATTRIBUTION.md](ATTRIBUTION.md).
 
@@ -39,6 +39,7 @@ around them. That is the gap this set fills.
 | [omega-upgrade-diff-review](omega-upgrade-diff-review/SKILL.md) | What changed, and what did the change break? |
 | [omega-ordering-and-approval-races](omega-ordering-and-approval-races/SKILL.md) | Who profits from reordering this? |
 | [omega-time-indexed-state](omega-time-indexed-state/SKILL.md) | Does a read for time T return what was true at T? |
+| [omega-share-and-index-accounting](omega-share-and-index-accounting/SKILL.md) | Is the scalar current, and does the round trip close? |
 | [omega-transfer-restriction-hooks](omega-transfer-restriction-hooks/SKILL.md) | Which parties does this restriction actually cover? |
 | [omega-standard-conformance](omega-standard-conformance/SKILL.md) | Does it honour the standard it advertises? |
 | [omega-repo-hygiene-sweep](omega-repo-hygiene-sweep/SKILL.md) | Is the repo itself sound? |
@@ -47,7 +48,7 @@ around them. That is the gap this set fills.
 
 Start with `omega-audit-workflow`. It orchestrates the engagement and, at
 Phase 3, spawns two **independent review subagents** — one working bottom-up
-from state, one top-down from entry points — each applying all ten lenses to
+from state, one top-down from entry points — each applying all eleven lenses to
 the full scope, then reconciles them. A third regression pass runs for repeat
 engagements. Independence cannot be faked inside one context, which is why this
 phase fans out rather than looping.
@@ -78,6 +79,7 @@ collections have deeper per-bug-class catalogues. Suggested pairings:
 | `omega-upgrade-diff-review` | **[Q]** `proxy-upgrade-safety` (storage-collision mechanics) |
 | `omega-ordering-and-approval-races` | **[P]** `hacking-agents/` attacker framing |
 | `omega-time-indexed-state` | **[P]** `economic-security-agent` (incentive analysis of boundary timing) |
+| `omega-share-and-index-accounting` | **[Q]** `input-arithmetic-safety` (rounding direction in the conversions) |
 | `omega-transfer-restriction-hooks` | **[Q]** `external-call-safety` (token-integration mechanics) |
 | `omega-standard-conformance` | **[Q]** `external-call-safety` (the consuming side) |
 | `omega-audit-workflow` | **[P]** `solidity-auditor` (12-agent parallel sweep as the breadth phase) |

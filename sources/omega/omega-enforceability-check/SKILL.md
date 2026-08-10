@@ -103,6 +103,28 @@ unreachable branch — is a finding. Also check ownership: a flag whose effect
 requires a call from an owner that is a *factory contract with no such function*
 is inert even though the flag is read.
 
+**The fail-open default.** A related and more dangerous variant: a guard that
+permits everyone when it has not been configured.
+
+```solidity
+modifier onlyRole(bytes4 fn) {
+    require(hasRole(functionRoles[fn], msg.sender));   // unset mapping → role 0x00
+    _;                                                  // …which nobody has, or everybody does
+}
+```
+
+Where the role for a function was never assigned, the lookup returns the zero
+value, and depending on the role check that means either "nobody can call this"
+or — far more often — "anyone can". A protected-looking function is open, and it
+is open precisely on the functions someone forgot to configure, which are the
+ones least likely to be tested.
+
+**Detection:** for every custom access-control mechanism, evaluate the guard
+with the configuration *empty*. If the unconfigured default is permissive, that
+is the finding regardless of what the deployment script happens to set. Make the
+guard revert on an unset entry, or use a well-tested standard implementation
+rather than a bespoke registry.
+
 ### 5. The allowlist enumerates the wrong thing
 
 Trying to bound an **effect** by pattern-matching a **syntax**.

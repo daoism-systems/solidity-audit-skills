@@ -103,6 +103,7 @@ depth agents have the strongest "mandatory analysis checks" discipline.
 | **[O]** | `sources/omega/omega-accounting-consistency/SKILL.md` | Per-counter: every path that changes the underlying thing updates the summary. |
 | **[O]** | `sources/omega/omega-external-data-trust/SKILL.md` | Per-external-input: what is it trusted for, what if it is wrong or stale, who benefits. |
 | **[O]** | `sources/omega/omega-ordering-and-approval-races/SKILL.md` | Six recurring ordering shapes applied to every approve-then-act flow. |
+| **[O]** | `sources/omega/omega-share-and-index-accounting/SKILL.md` | Per derived balance: is the scalar settled before every conversion, and does every mutator update the index basis? |
 | **[O]** | `sources/omega/omega-time-indexed-state/SKILL.md` | Per historical getter and per epoch boundary: which record does a write land in, which does a read resolve to, and who profits from arriving just before the snapshot? |
 | **[O]** | `sources/omega/omega-transfer-restriction-hooks/SKILL.md` | Per-restriction: which parties does the hook actually see, and what unrestricted path reaches the same outcome? |
 | **[O]** | `sources/omega/omega-standard-conformance/SKILL.md` | Per-standard: what does the spec promise that this does not deliver, and does the harm land on an integrator? |
