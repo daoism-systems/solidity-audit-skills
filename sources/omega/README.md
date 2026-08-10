@@ -4,7 +4,7 @@ Eight custom skills distilled from the audit methodology of **Team Omega**
 ([teamomega.eth.limo](https://teamomega.eth.limo/)), derived by studying their
 public report archive. See [ATTRIBUTION.md](ATTRIBUTION.md).
 
-Unlike `sources/`, this directory is **not** a mirror. These are originally
+Unlike its sibling directories under `sources/`, this one is **not** a mirror. These are originally
 authored skill files, written at the level of **pattern recognition** —
 recognizable code shapes, structural questions, detection heuristics and fix
 patterns. They deliberately do not reference specific past engagements or
@@ -46,7 +46,7 @@ Start with `omega-audit-workflow` — it is the orchestrator and tells you when 
 reach for the other seven. Or load an individual lens directly:
 
 ```
-@solidity-audit-skills/skills/omega/omega-asset-exit-paths/SKILL.md
+@solidity-audit-skills/sources/omega/omega-asset-exit-paths/SKILL.md
 ```
 
 ## Relationship to the mirrored sources
