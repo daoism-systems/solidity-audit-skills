@@ -17,6 +17,7 @@ the agent with `@`.
 | **[L]** | `sources/plamen/agents/skills/<lang>/semi-trusted-roles/SKILL.md` | ●  Per-language treatment of semi-trusted roles. |
 | **[Q]** | `sources/quillshield/plugins/semantic-guard-analysis/skills/semantic-guard-analysis/SKILL.md` | ●  Detect inconsistent modifiers automatically via the "Consistency Principle". |
 | **[O]** | `sources/omega/omega-enforceability-check/SKILL.md` | ●  Guards that exist but bind nobody: the constrained party controls the constraint, a second address defeats it, the validator's result is discarded, the flag has no reader. |
+| **[O]** | `sources/omega/omega-transfer-restriction-hooks/SKILL.md` | ●  Permissioned-token gating: which parties a whitelist/blacklist/sanctions hook actually covers, sentinel addresses that disable mint and burn, restrictions that seize assets by blocking the exit, and round-trip bypasses. |
 
 **Recommended combo:** [Q] for detection → [P] for attacker framing → [L] for
 language-specific idioms.
@@ -94,6 +95,7 @@ ERC721 hook specifics.
 | **[L]** | `sources/plamen/agents/skills/<lang>/external-precondition-audit/SKILL.md` | ●  Per-language external precondition audit. |
 | **[Q]** | `sources/quillshield/plugins/external-call-safety/skills/external-call-safety/SKILL.md` | ●  Cataloged "weird ERC20" reference (fee-on-transfer, rebasing, USDT void return, ERC-777). |
 | **[O]** | `sources/omega/omega-asset-exit-paths/SKILL.md` | ◐  One non-standard, paused or malicious token in a list blocking an entire batch claim or redemption. |
+| **[O]** | `sources/omega/omega-standard-conformance/SKILL.md` | ●  The other direction — being a standard-compliant token rather than consuming one. Return-value vs revert semantics, receiver callbacks that revert against compliant recipients, `_mint` vs `_safeMint`, uninitialized domain separators in forked crypto. |
 
 **Recommended combo:** [Q] for "weird ERC20" catalog → [L] `depth-external`
 for MEV and cross-chain timing → [P] `boundary-agent` for per-call

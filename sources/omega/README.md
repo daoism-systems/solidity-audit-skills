@@ -1,6 +1,6 @@
 # Omega Skills
 
-Eight custom skills distilled from the audit methodology of **Team Omega**
+Ten custom skills distilled from the audit methodology of **Team Omega**
 ([teamomega.eth.limo](https://teamomega.eth.limo/)), derived by studying their
 public report archive. See [ATTRIBUTION.md](ATTRIBUTION.md).
 
@@ -38,13 +38,15 @@ around them. That is the gap this set fills.
 | [omega-external-data-trust](omega-external-data-trust/SKILL.md) | What am I trusting, and for what? |
 | [omega-upgrade-diff-review](omega-upgrade-diff-review/SKILL.md) | What changed, and what did the change break? |
 | [omega-ordering-and-approval-races](omega-ordering-and-approval-races/SKILL.md) | Who profits from reordering this? |
+| [omega-transfer-restriction-hooks](omega-transfer-restriction-hooks/SKILL.md) | Which parties does this restriction actually cover? |
+| [omega-standard-conformance](omega-standard-conformance/SKILL.md) | Does it honour the standard it advertises? |
 | [omega-repo-hygiene-sweep](omega-repo-hygiene-sweep/SKILL.md) | Is the repo itself sound? |
 
 ## How to use
 
 Start with `omega-audit-workflow`. It orchestrates the engagement and, at
 Phase 3, spawns two **independent review subagents** — one working bottom-up
-from state, one top-down from entry points — each applying all seven lenses to
+from state, one top-down from entry points — each applying all nine lenses to
 the full scope, then reconciles them. A third regression pass runs for repeat
 engagements. Independence cannot be faked inside one context, which is why this
 phase fans out rather than looping.
@@ -74,6 +76,8 @@ collections have deeper per-bug-class catalogues. Suggested pairings:
 | `omega-external-data-trust` | **[Q]** `oracle-flashloan-analysis` (manipulation mechanics) |
 | `omega-upgrade-diff-review` | **[Q]** `proxy-upgrade-safety` (storage-collision mechanics) |
 | `omega-ordering-and-approval-races` | **[P]** `hacking-agents/` attacker framing |
+| `omega-transfer-restriction-hooks` | **[Q]** `external-call-safety` (token-integration mechanics) |
+| `omega-standard-conformance` | **[Q]** `external-call-safety` (the consuming side) |
 | `omega-audit-workflow` | **[P]** `solidity-auditor` (12-agent parallel sweep as the breadth phase) |
 
 Source tags follow [../../library/README.md](../../library/README.md):

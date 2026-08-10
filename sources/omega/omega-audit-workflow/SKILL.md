@@ -6,7 +6,7 @@ description: Orchestrate a full smart-contract audit engagement — scope as a c
 # Audit Workflow
 
 The process layer, and the orchestrator for this skill set. Use it to run the
-engagement; the other seven skills are the lenses each Phase 3 pass applies.
+engagement; the other nine skills are the lenses each Phase 3 pass applies.
 
 ```
 1. Fix scope        → exact repo, exact commit(s), exact file list
@@ -131,7 +131,7 @@ substituting real paths.
 | **Pass B** | Top-down — external entry points first, then what they reach | scope, source, context |
 | **Pass R** | Regression — prior findings only. *Repeat engagements only; skip otherwise* | scope, source, history |
 
-Both A and B apply **all seven lenses** to the **full scope**. Do not split the
+Both A and B apply **all nine lenses** to the **full scope**. Do not split the
 lenses between them and do not split the files between them — that produces two
 partial reviews whose disagreement means nothing. Their divergence is the
 product, and it only has meaning if both had the opportunity to find everything.
@@ -180,6 +180,8 @@ to each:
 | What are we trusting, for what? | `omega-external-data-trust` |
 | Who profits from reordering? | `omega-ordering-and-approval-races` |
 | What did the diff break? | `omega-upgrade-diff-review` |
+| Which parties does this restriction cover? | `omega-transfer-restriction-hooks` |
+| Does it honour the standard it advertises? | `omega-standard-conformance` |
 | Is the repo itself sound? | `omega-repo-hygiene-sweep` |
 
 **Read the context, not just the code.** For every integrated protocol —
@@ -310,7 +312,7 @@ Build
 Review (Phase 3 orchestration)
 - [ ] Bundle built: scope, source, context, finding-format (+ history if repeat)
 - [ ] Pass A and Pass B spawned in one message, parallel, background
-- [ ] Both passes given the FULL scope and ALL seven lenses — not split between them
+- [ ] Both passes given the FULL scope and ALL nine lenses — not split between them
 - [ ] Pass R spawned if this is a repeat engagement
 - [ ] Orchestrator formed no independent view while passes ran
 - [ ] Waited for every completion notification; no polling, no partial merge

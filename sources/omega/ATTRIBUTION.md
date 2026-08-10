@@ -35,7 +35,21 @@ vaults, bridges and cross-chain messaging, DAO governance, NFT
 fractionalization, and — notably — Python agent backends and frontends audited
 alongside the contracts. That last category is why
 [`omega-external-data-trust`](omega-external-data-trust/SKILL.md) covers
-off-chain service surface, which most Solidity-only skill sets omit.
+off-chain service surface, which most Solidity-only skill sets omit. The heavy
+weighting toward permissioned RWA tokens is likewise why
+[`omega-transfer-restriction-hooks`](omega-transfer-restriction-hooks/SKILL.md)
+exists as its own lens.
+
+The corpus was analysed twice. The first pass read every critical, high and
+medium finding in full and the low/info findings by title. The second pass read
+all 787 extractable finding bodies and clustered them, which surfaced two
+families the first pass had missed — compliance/transfer-restriction gating and
+standard-conformance — now covered by the two skills named above. Clusters that
+were considered and deliberately **not** given their own skill: governance and
+voting (a protocol domain, not a pattern — it decomposes into the existing
+lenses), reentrancy and CEI ordering (covered by **[Q]**
+`reentrancy-pattern-analysis`), and decimal/scale mismatch (covered by **[P]**
+`math-precision-agent` and **[L]** `dimensional-analysis`).
 
 ## Licensing
 

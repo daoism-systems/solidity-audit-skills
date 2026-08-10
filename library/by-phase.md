@@ -103,6 +103,8 @@ depth agents have the strongest "mandatory analysis checks" discipline.
 | **[O]** | `sources/omega/omega-accounting-consistency/SKILL.md` | Per-counter: every path that changes the underlying thing updates the summary. |
 | **[O]** | `sources/omega/omega-external-data-trust/SKILL.md` | Per-external-input: what is it trusted for, what if it is wrong or stale, who benefits. |
 | **[O]** | `sources/omega/omega-ordering-and-approval-races/SKILL.md` | Six recurring ordering shapes applied to every approve-then-act flow. |
+| **[O]** | `sources/omega/omega-transfer-restriction-hooks/SKILL.md` | Per-restriction: which parties does the hook actually see, and what unrestricted path reaches the same outcome? |
+| **[O]** | `sources/omega/omega-standard-conformance/SKILL.md` | Per-standard: what does the spec promise that this does not deliver, and does the harm land on an integrator? |
 
 **Combine:** every depth agent runs the same mandatory analysis protocol —
 Devil's Advocate + Cross-Domain Dependencies + Chain Check + Evidence
