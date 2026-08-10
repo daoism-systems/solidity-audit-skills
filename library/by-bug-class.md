@@ -16,6 +16,7 @@ the agent with `@`.
 | **[L]** | `sources/plamen/agents/skills/soroban/auth-validation/SKILL.md` | ●  Soroban-specific auth verification. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/semi-trusted-roles/SKILL.md` | ●  Per-language treatment of semi-trusted roles. |
 | **[Q]** | `sources/quillshield/plugins/semantic-guard-analysis/skills/semantic-guard-analysis/SKILL.md` | ●  Detect inconsistent modifiers automatically via the "Consistency Principle". |
+| **[O]** | `skills/omega/omega-enforceability-check/SKILL.md` | ●  Guards that exist but bind nobody: the constrained party controls the constraint, a second address defeats it, the validator's result is discarded, the flag has no reader. |
 
 **Recommended combo:** [Q] for detection → [P] for attacker framing → [L] for
 language-specific idioms.
@@ -75,6 +76,7 @@ ERC721 hook specifics.
 | **[L]** | `sources/plamen/agents/skills/sui/oracle-analysis/SKILL.md` | ●  Sui oracle patterns. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/flash-loan-interaction/SKILL.md` | ●  Per-language flash-loan interaction. |
 | **[Q]** | `sources/quillshield/plugins/oracle-flashloan-analysis/skills/oracle-flashloan-analysis/SKILL.md` | ●  Oracle trust-model taxonomy (Chainlink, TWAP, spot, Band, custom). 5 stale-price risks. |
+| **[O]** | `skills/omega/omega-external-data-trust/SKILL.md` | ●  Integration failures with an *honest* oracle: staleness measured on the wrong timestamp, uncorrelated feeds, responses not checked against the constraints requested. |
 
 **Recommended combo:** [Q] for oracle classification → [P]
 `economic-security` for flash-loan attacker framing → [L]
@@ -91,6 +93,7 @@ ERC721 hook specifics.
 | **[L]** | `sources/plamen/agents/depth-external.md` | ●  External call side effects, cross-chain timing, MEV vectors. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/external-precondition-audit/SKILL.md` | ●  Per-language external precondition audit. |
 | **[Q]** | `sources/quillshield/plugins/external-call-safety/skills/external-call-safety/SKILL.md` | ●  Cataloged "weird ERC20" reference (fee-on-transfer, rebasing, USDT void return, ERC-777). |
+| **[O]** | `skills/omega/omega-asset-exit-paths/SKILL.md` | ◐  One non-standard, paused or malicious token in a list blocking an entire batch claim or redemption. |
 
 **Recommended combo:** [Q] for "weird ERC20" catalog → [L] `depth-external`
 for MEV and cross-chain timing → [P] `boundary-agent` for per-call
@@ -120,6 +123,7 @@ language-agnostic methodology.
 | **[L]** | `sources/plamen/agents/skills/sui/package-version-safety/SKILL.md` | ●  Sui package upgrades. |
 | **[L]** | `sources/plamen/agents/skills/injectable/l1/hardfork-activation-and-protocol-upgrade/SKILL.md` | ●  L1 hardfork activation. |
 | **[Q]** | `sources/quillshield/plugins/proxy-upgrade-safety/skills/proxy-upgrade-safety/SKILL.md` | ●  Transparent / UUPS / Beacon / Diamond / Minimal proxy patterns. |
+| **[O]** | `skills/omega/omega-upgrade-diff-review/SKILL.md` | ●  The engagement around an upgrade: storage-layout diffing, initializer/migration front-running, whether v2 still honours v1's promises to in-flight state. |
 
 **Recommended combo:** [Q] for EVM proxy patterns → [L] for non-EVM
 upgrade patterns.
@@ -134,6 +138,7 @@ upgrade patterns.
 | **[L]** | `sources/plamen/agents/skills/injectable/l1/mempool-asymmetric-dos/SKILL.md` | ●  L1 mempool DoS (asymmetric cost). |
 | **[L]** | `sources/plamen/agents/skills/injectable/l1/p2p-dos-and-eclipse/SKILL.md` | ●  L1 p2p eclipse / single-packet-kill. |
 | **[Q]** | `sources/quillshield/plugins/dos-griefing-analysis/skills/dos-griefing-analysis/SKILL.md` | ●  Smart-contract DoS (unbounded loop, 63/64 rule, storage bloat, self-destruct force-feeding). |
+| **[O]** | `skills/omega/omega-asset-exit-paths/SKILL.md` | ●  The stuck-funds framing: ways-in/ways-out table per asset, exits checked in every reachable state, single-element-fails-the-batch, push-payment blockades. |
 
 **Recommended combo:** [Q] for smart-contract-layer DoS → [L] for L1
 node-client DoS.
@@ -149,6 +154,7 @@ node-client DoS.
 | **[L]** | `sources/plamen/agents/depth-consensus-invariant.md` | ●  L1 consensus invariants (Byzantine-scenario reasoning). |
 | **[L]** | `sources/plamen/agents/skills/niche/semantic-gap-investigator/SKILL.md` | ●  SYNC_GAP / ACCUMULATION_EXPOSURE / CONDITIONAL / CLUSTER_GAP flags. |
 | **[Q]** | `sources/quillshield/plugins/state-invariant-detection/skills/state-invariant-detection/SKILL.md` | ●  Explicit taxonomy: sum / conservation / ratio / monotonic / synchronization. |
+| **[O]** | `skills/omega/omega-accounting-consistency/SKILL.md` | ●  Counters updated on some transitions but not all, `=` vs `+=`, double counting when the callee already aggregated, reversal paths that skip the total. |
 
 **Recommended combo:** [Q] for invariant taxonomy → [L]
 `depth-state-trace` for systematic enforcement verification → [P]
@@ -182,6 +188,7 @@ node-client DoS.
 | **[L]** | `sources/plamen/agents/skills/<lang>/economic-design-audit/SKILL.md` | ●  Per-language economic design. |
 | **[L]** | `sources/plamen/agents/depth-external.md` §3 | ●  MEV vector analysis, multi-block arbitrage windows. |
 | **[Q]** | `sources/quillshield/plugins/oracle-flashloan-analysis/skills/oracle-flashloan-analysis/SKILL.md` | ◐  Folded into oracle-flashloan. |
+| **[O]** | `skills/omega/omega-ordering-and-approval-races/SKILL.md` | ●  Six recurring ordering shapes, including dilution into a buyout premium and arbitrage capture of a payout. |
 
 **Recommended combo:** [P] `economic-security` for attacker framing → [P]
 `trust-gap` for seam bugs → [L] `depth-external` §3 for cross-chain MEV.
@@ -198,6 +205,7 @@ node-client DoS.
 | **[L]** | `sources/plamen/agents/skills/niche/spec-compliance-audit/SKILL.md` | ●  Doc-vs-code compliance. |
 | **[L]** | `sources/plamen/agents/skills/niche/event-completeness/SKILL.md` | ●  Event emission coverage and parameter accuracy. |
 | **[Q]** | `sources/quillshield/plugins/semantic-guard-analysis/skills/semantic-guard-analysis/SKILL.md` | ●  Detect functions that bypass the contract's own guards. |
+| **[O]** | `skills/omega/omega-enforceability-check/SKILL.md` | ●  Complements guard-consistency detection: finds guards that are *present and inert* rather than missing. |
 
 **Recommended combo:** [Q] for single-contract detection → [P] `asymmetry`
 for paired-function bugs → [L] niche agents for cross-contract drift.
@@ -230,6 +238,7 @@ for paired-function bugs → [L] niche agents for cross-contract drift.
 | **[L]** | `sources/plamen/agents/depth-external.md` §2 | ●  Message latency, stale state, multi-block arbitrage. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/cross-chain-timing/SKILL.md` | ●  Per-language cross-chain timing. |
 | **[L]** | `sources/plamen/agents/skills/injectable/cross-vm-serialization-conformance/SKILL.md` | ●  Outbound encoding conformance (EVM → non-EVM). |
+| **[O]** | `skills/omega/omega-ordering-and-approval-races/SKILL.md` | ◐  Shape 3 — two entry points accepting the same bridged message, raced to choose the delivered token (Gnosis `XDFB1`). |
 
 **Only plamen covers this.** For cross-chain audits, start with
 `depth-external.md` and add the per-language `cross-chain-timing` skill.
@@ -242,6 +251,7 @@ for paired-function bugs → [L] niche agents for cross-contract drift.
 |---|---|---|
 | **[P]** | `sources/pashov/x-ray/SKILL.md` | ●  Single `x-ray.md` report + invariants.md + entry-points.md + architecture.svg. |
 | **[L]** | `sources/plamen/skills/audit-prep/SKILL.md` | ●  8-phase scored readiness table (coverage/quality/docs/hygiene/deps/practices/deploy/context). |
+| **[O]** | `skills/omega/omega-repo-hygiene-sweep/SKILL.md` | ●  The G-series sweep: dependency pinning and advisories, licensing/copyright compliance, coverage and CI, warnings, dead code, docs drift. |
 
 **Recommended combo:** use both — they produce complementary outputs.
 

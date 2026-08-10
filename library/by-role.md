@@ -19,6 +19,7 @@ the report.
 | **[L]** | `sources/plamen/CLAUDE.md` + `sources/plamen/rules/orchestrator-rules.md` | Phased pipeline: recon → breadth → rescan → depth → chain → verify → skeptic → report. Haltless by design — malformed phases auto-recover. |
 | **[L]** | `sources/plamen/skills/audit-prep/SKILL.md` | 8-phase readiness orchestrator. |
 | **[Q]** | `sources/quillshield/plugins/behavioral-state-analysis/skills/behavioral-state-analysis/SKILL.md` | BSA orchestrator: intent extraction → threat engines → adversarial simulation → Bayesian scoring. |
+| **[O]** | `skills/omega/omega-audit-workflow/SKILL.md` | Engagement-level orchestration: scope as a commit diff, two independent passes merged, build-and-run before reading, static-analysis triage, and which of the seven Omega lenses to apply when. |
 
 ---
 
@@ -148,6 +149,7 @@ Writes the final human-readable report.
 | **[P]** | `sources/pashov/solidity-auditor/references/report-formatting.md` | Pashov's report format. |
 | **[P]** | `sources/pashov/solidity-auditor/references/judging.md` | 4-gate severity judging rubric. |
 | **[P]** | `sources/pashov/fizz/agents/report-writer.md` | Fuzz-campaign report writer. |
+| **[O]** | `skills/omega/omega-audit-workflow/SKILL.md` | Report skeleton, filename-derived finding IDs, the four-level severity ladder with inline justification, and the six resolution statuses including `[resolved*]` for contingent mitigations. |
 
 ---
 

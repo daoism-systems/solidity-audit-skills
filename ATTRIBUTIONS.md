@@ -111,6 +111,7 @@ the same MIT terms as the upstream sources for convenience. Skill content is
 | `ATTRIBUTIONS.md` (this file) | © 2026 Daoism Systems. |
 | `CORRELATIONS.md` | © 2026 Daoism Systems. The correlation analysis is original editorial work; skill descriptions paraphrase upstream SKILL.md frontmatter. |
 | `library/*.md` | © 2026 Daoism Systems. Indexes point to upstream files; no skill content is duplicated. |
+| `skills/omega/**` | © 2026 Daoism Systems. Original skill prose derived from the methodology in [OmegaAudits/audits](https://github.com/OmegaAudits/audits); no Team Omega report text is reproduced. Full derivation record in [`skills/omega/ATTRIBUTION.md`](skills/omega/ATTRIBUTION.md). |
 
 ---
 

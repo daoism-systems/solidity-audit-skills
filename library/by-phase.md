@@ -16,6 +16,8 @@ protocol and flag readiness gaps.
 | **[L]** | `sources/plamen/skills/audit-prep/SKILL.md` | 8-phase scored readiness report (coverage / quality / docs / hygiene / deps / practices / deploy / context). Complementary to x-ray. |
 | **[L]** | `sources/plamen/prompts/<lang>/phase1-recon-prompt.md` | Recon phase prompt for plamen's pipeline (auto-detects language: evm/solana/aptos/sui/soroban/daml). |
 | **[Q]** | `sources/quillshield/plugins/defender/skills/defender/SKILL.md` | If the audit includes deployment / CI/CD review. |
+| **[O]** | `skills/omega/omega-repo-hygiene-sweep/SKILL.md` | Run in parallel with the build. Produces the G-series findings — deps, licensing, coverage, CI, warnings, dead code — and tells you how much to trust the code you are about to read. |
+| **[O]** | `skills/omega/omega-audit-workflow/SKILL.md` | Scoping the engagement: exact repo, commit hash(es), file list, normalized LOC, prior reports for repeat clients. |
 
 **Combine [P] + [L]:** x-ray gives you architecture + invariants; audit-prep
 gives you the scored readiness gaps.
@@ -57,6 +59,7 @@ Find candidate bugs across the full in-scope codebase. Two strategies:
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/numerical-gap-agent.md` | Gap-hunter: precision × invariant × boundary seam. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/trust-gap-agent.md` | Gap-hunter: access × economics × asymmetry seam. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/flow-gap-agent.md` | Gap-hunter: execution × periphery × first-principles seam. |
+| **[O]** | `skills/omega/omega-asset-exit-paths/SKILL.md` | First-pass sweep: inventory every asset the contract can hold and build the ways-in/ways-out table before reading logic closely. |
 
 ### Strategy B — Topic-by-topic plugin scan (quillshield)
 
@@ -95,6 +98,10 @@ depth agents have the strongest "mandatory analysis checks" discipline.
 | **[L]** | `sources/plamen/agents/depth-consensus-invariant.md` | L1 consensus safety / liveness invariants (Byzantine-scenario reasoning). |
 | **[L]** | `sources/plamen/agents/depth-network-surface.md` | L1 p2p/RPC/mempool attack surface. |
 | **[L]** | `sources/plamen/agents/skills/niche/*.md` | Flag-triggered standalone depth agents (signature-verification, semantic-gap, semantic-consistency, spec-compliance, event-completeness, multi-step-operation, callback-receiver, dimensional-analysis, stableswap-compliance). |
+| **[O]** | `skills/omega/omega-enforceability-check/SKILL.md` | Per-guard: who is it meant to constrain, and what is the cheapest way for them to act anyway? |
+| **[O]** | `skills/omega/omega-accounting-consistency/SKILL.md` | Per-counter: every path that changes the underlying thing updates the summary. |
+| **[O]** | `skills/omega/omega-external-data-trust/SKILL.md` | Per-external-input: what is it trusted for, what if it is wrong or stale, who benefits. |
+| **[O]** | `skills/omega/omega-ordering-and-approval-races/SKILL.md` | Six recurring ordering shapes applied to every approve-then-act flow. |
 
 **Combine:** every depth agent runs the same mandatory analysis protocol —
 Devil's Advocate + Cross-Domain Dependencies + Chain Check + Evidence
@@ -149,6 +156,7 @@ Produce the final audit report with severity, evidence, and fix suggestions.
 | **[L]** | `sources/plamen/rules/finding-output-format.md` | Finding output format contract. |
 | **[P]** | `sources/pashov/solidity-auditor/references/report-formatting.md` | Pashov's report formatting. |
 | **[P]** | `sources/pashov/solidity-auditor/references/judging.md` | Four-gate severity judging rubric (BLOCKS / ALLOWS / IRRELEVANT / UNCERTAIN). |
+| **[O]** | `skills/omega/omega-audit-workflow/SKILL.md` | Omega's report structure: per-file sections with filename-derived ID prefixes, a General section, mechanism→consequence→Recommendation→Severity-with-justification, and the preliminary → fix-commit → verified Resolution loop. |
 
 **Recommended:** [L] `report-template.md` for the structure → [P]
 `judging.md` for the severity rubric.

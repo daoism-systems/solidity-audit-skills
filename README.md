@@ -20,6 +20,14 @@ everstrat/hackerhouse audit:
 | **plamen** | [PlamenTSV/plamen](https://github.com/PlamenTSV/plamen) | Multi-chain depth + breadth **orchestrator** (EVM/Solana/Sui/Aptos/Soroban/DAML + L1 node clients) |
 | **quillshield** | [quillai-network/quillshield_skills](https://github.com/quillai-network/quillshield_skills) | 10 **topic-focused** plugin skills with rich reference packs and confidence scoring |
 
+A fourth set, [`skills/omega/`](skills/omega/), is **originally authored** by
+Daoism Systems rather than mirrored: 8 skills distilled from Team Omega's
+public archive of 55 audit reports (2021–2026, 834 catalogued findings). Where
+the three mirrored collections organize by bug class, Omega's archive suggests
+organizing by the questions asked of every contract — can assets get back out,
+does this guard actually bind, is this counter right on every path. See
+[skills/omega/README.md](skills/omega/README.md).
+
 They overlap heavily in topic coverage but each contributes unique material
 (see [CORRELATIONS.md](CORRELATIONS.md)). Mirroring them side-by-side, plus
 a thin concept index that points across, gives a single place to:
@@ -78,6 +86,10 @@ solidity-audit-skills/
 │   │   └── LICENSE
 │   └── quillshield/        # quillai-network/quillshield_skills (10 plugins)
 │       └── LICENSE
+├── skills/                 # Originally authored skills (not mirrors)
+│   └── omega/              # 8 skills distilled from OmegaAudits/audits
+│       ├── README.md
+│       └── ATTRIBUTION.md  # Corpus, derivation method, licensing
 └── library/                # Concept-organized indexes pointing into sources/
     ├── README.md           # How the index is organized
     ├── by-bug-class.md     # Reentrancy, oracle, math, access-control, …
@@ -86,7 +98,9 @@ solidity-audit-skills/
     └── by-role.md          # Orchestrator, attacker, verifier, synthesizer
 ```
 
-`sources/` is the source of truth — files there are untouched copies of the
+`sources/` and `skills/` are both sources of truth, but of different kinds:
+`sources/` holds untouched upstream copies, `skills/` holds original writing.
+Files under `sources/` are untouched copies of the
 upstream repos (with heavy script directories omitted, see
 [ATTRIBUTIONS.md](ATTRIBUTIONS.md)). `library/` only **points** into
 `sources/`; it does not duplicate skill content. That keeps every
