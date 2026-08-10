@@ -47,11 +47,14 @@ around them. That is the gap this set fills.
 ## How to use
 
 Start with `omega-audit-workflow`. It orchestrates the engagement and, at
-Phase 3, spawns two **independent review subagents** — one working bottom-up
-from state, one top-down from entry points — each applying all eleven lenses to
-the full scope, then reconciles them. A third regression pass runs for repeat
-engagements. Independence cannot be faked inside one context, which is why this
-phase fans out rather than looping.
+Phase 3, spawns **five independent review subagents** — bottom-up from state,
+top-down from entry points, asset-centric, actor-centric and invariant-centric
+— each applying all eleven lenses to the full scope, then reconciles them. A
+regression pass runs additionally for repeat engagements.
+
+Five, not two: modelled coverage runs ~62% at two passes and ~80% at five, and
+correlation matters more than count — decorrelating the passes (different model
+families, different decomposition axes) beats adding more of them.
 
 Its `references/` carry the machinery: verbatim
 [pass prompts](omega-audit-workflow/references/pass-prompts.md), the

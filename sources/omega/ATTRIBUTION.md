@@ -40,53 +40,32 @@ weighting toward permissioned RWA tokens is likewise why
 [`omega-transfer-restriction-hooks`](omega-transfer-restriction-hooks/SKILL.md)
 exists as its own lens.
 
-The corpus was analysed twice. The first pass read every critical, high and
-medium finding in full and the low/info findings by title. The second pass read
-all 787 extractable finding bodies and clustered them, which surfaced two
-families the first pass had missed — compliance/transfer-restriction gating and
-standard-conformance — now covered by the two skills named above. Clusters that
-were considered and deliberately **not** given their own skill: reentrancy and
-CEI ordering (covered by **[Q]** `reentrancy-pattern-analysis`), decimal/scale
-mismatch (covered by **[P]** `math-precision-agent` and **[L]**
-`dimensional-analysis`), and mechanism/incentive design (covered by **[P]**
-`economic-security-agent`, though it is the strongest remaining candidate).
+Two further families earn their own lens on weight of evidence.
+[`omega-time-indexed-state`](omega-time-indexed-state/SKILL.md) covers
+checkpoints, snapshots, epochs, delegation records and accrual windows — visible
+across the governance engagements but not governance-specific, since the same
+defects appear in any staking, vesting or reward system.
+[`omega-share-and-index-accounting`](omega-share-and-index-accounting/SKILL.md)
+covers balances derived from a shared scalar rather than stored; it appears
+independently across index-based interest tokens, multiplier-based rebasing
+tokens and a rebasing savings wrapper, which is what distinguishes it from one
+client's quirk.
 
-A third pass re-read the DAO and governance engagements specifically. This
-corrected an error: the first two passes concluded governance was "a protocol
-domain, not a pattern", but that conclusion rested on incomplete evidence —
-**three of the governance reports had never parsed into the finding index and
-so had never been read at all.** They use a 2021-era format with no `ID.`
-prefix on findings.
+Clusters that recur in the archive but are deliberately **not** given their own
+lens, because the mirrored collections already cover them: reentrancy and CEI
+ordering (**[Q]** `reentrancy-pattern-analysis`), decimal and scale mismatch
+(**[P]** `math-precision-agent`, **[L]** `dimensional-analysis`), and
+mechanism/incentive design (**[P]** `economic-security-agent` — the strongest
+candidate for promotion should that change).
 
-Reading them surfaced a pattern family with no home in the library:
-time-indexed state — checkpoints, snapshots, epochs, delegation records and
-accrual windows. It is not governance-specific; the same defects appear in any
-staking, vesting or reward system. It is now covered by
-[`omega-time-indexed-state`](omega-time-indexed-state/SKILL.md). The original
-judgement was right that *governance* is a domain rather than a pattern, and
-wrong to stop there.
+Governance is treated as a protocol *domain* rather than a pattern: its findings
+decompose into the lenses above rather than forming one of their own.
 
-A fourth pass audited the extraction itself rather than the reports, by
-comparing the findings recovered per report against the totals each report
-states in its own severity table. That exposed systematic under-extraction —
-worst in the largest report in the archive, where 22 of 96 findings had never
-been read, including four rated high. Re-reading the shortfalls surfaced one
-more family, now covered by
-[`omega-share-and-index-accounting`](omega-share-and-index-accounting/SKILL.md):
-balances derived from a shared scalar rather than stored. It appears
-independently across three unrelated clients — index-based interest tokens,
-multiplier-based rebasing tokens, and a rebasing savings wrapper — which is what
-distinguishes it from a single client's quirk.
-
-The same pass added the fail-open access-control default to
-[`omega-enforceability-check`](omega-enforceability-check/SKILL.md) §4.
-
-**Method note.** Each pass found material the previous one missed, and the
-failures were in extraction rather than in reading: reports whose format the
-parser did not match, and findings the regex dropped silently. Anyone extending
-this work should reconcile against the reports' own stated totals *first* — it
-is the cheapest available check on coverage, and it should have been the first
-thing done rather than the fourth.
+**Extending this work.** Reconcile any re-extraction against the totals each
+report states in its own severity table. Several reports use a 2021-era format
+with no `ID.` prefix on findings and are silently skipped by ID-based parsers;
+the stated totals are the cheapest available check that a pass actually read
+what it claims to have read.
 
 ## Licensing
 

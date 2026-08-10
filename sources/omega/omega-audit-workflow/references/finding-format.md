@@ -3,8 +3,8 @@
 The output contract every Phase 3 pass writes to. Copy this file into the bundle
 so each agent has it.
 
-Two passes that emit different shapes cannot be merged mechanically, and the
-reconciliation degrades into rewriting both. One shape, so the merge is about
+Passes that emit different shapes cannot be merged mechanically, and the
+reconciliation degrades into rewriting them all. One shape, so the merge is about
 the code rather than about parsing.
 
 ---
@@ -79,9 +79,10 @@ These carry into the report's "checked and found sound" section, which is a real
 part of the deliverable — it tells the client what the review covered rather than
 what it happened to trip over.
 
-Only claim an area you genuinely worked. The merge intersects the two passes'
-cleared lists, so an unearned entry here is one of the few things that can make
-the final report *wrong* rather than merely incomplete.
+Only claim an area you genuinely worked. The merge requires a majority of
+passes to have cleared an area before it is reported as sound, so an unearned
+entry here is one of the few things that can make the final report *wrong*
+rather than merely incomplete.
 
 ---
 
@@ -92,8 +93,8 @@ the final report *wrong* rather than merely incomplete.
    mis-merged.
 2. **Do not rank, dedup, or write a report.** That is the orchestrator's job and
    it needs your raw output to do it.
-3. **Do not reference the other pass.** You have not seen it and must not
-   speculate about it.
+3. **Do not reference the other passes.** You have not seen them and must not
+   speculate about them.
 4. **Quote, don't paraphrase, in `evidence`.** The orchestrator adjudicates
    contested items from your evidence field; a paraphrase cannot be checked.
 5. **`severity` is your assessment, not a negotiation.** The orchestrator may

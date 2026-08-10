@@ -1,6 +1,6 @@
 ---
 name: omega-audit-workflow
-description: Orchestrate a full smart-contract audit engagement — scope as a commit diff, two independent review passes run as parallel subagents and reconciled into one report, compile/deploy/test the code rather than only reading it, triage static-analysis output instead of pasting it, organize findings per-file with ID prefixes and a General section, and close the loop with a preliminary report, a client fix commit, and a verified per-issue Resolution. Use when starting an audit, deciding how to structure a review, writing up findings, re-auditing a codebase you have reviewed before, or reviewing fixes.
+description: Orchestrate a full smart-contract audit engagement — scope as a commit diff, five independent review passes run as parallel subagents on different decomposition axes and reconciled into one report, compile/deploy/test the code rather than only reading it, triage static-analysis output instead of pasting it, organize findings per-file with ID prefixes and a General section, and close the loop with a preliminary report, a client fix commit, and a verified per-issue Resolution. Use when starting an audit, deciding how to structure a review, writing up findings, re-auditing a codebase you have reviewed before, or reviewing fixes.
 ---
 
 # Audit Workflow
@@ -11,7 +11,7 @@ engagement; the other eleven skills are the lenses each Phase 3 pass applies.
 ```
 1. Fix scope        → exact repo, exact commit(s), exact file list
 2. Build & run      → compile, deploy, test; run static analysis; triage
-3. Review           → two independent passes as parallel subagents, then reconcile
+3. Review           → five independent passes as parallel subagents, then reconcile
 4. Preliminary      → deliver findings before any fixes exist
 5. Client fixes     → client returns a commit hash
 6. Verify & close   → re-audit the fix commit, write per-issue Resolution
@@ -76,14 +76,63 @@ extortion finding, and you only learn that by building it.
 API or protocol, call it directly with adversarial parameters and record the
 response. Observed behaviour beats documented behaviour.
 
-## Phase 3 — Two independent passes (orchestrated)
+## Phase 3 — Independent passes (orchestrated fan-out)
 
-> Two reviewers who have not discussed the code find different things.
+> Reviewers who have not discussed the code find different things.
 
 This phase is **run as subagents**, not inline. Independence is the whole point
 and it cannot be faked inside one context: once you have written a finding, you
-cannot un-see it, and the second "pass" degrades into confirming the first.
+cannot un-see it, and a second "pass" degrades into confirming the first.
 Separate contexts give you the real thing.
+
+### How many passes
+
+Model detection as capture-recapture: each pass independently surfaces a given
+defect with probability *p*, so coverage is `1 − (1−p)^k`. With detectability
+mixed across routine, subtle and deep defects, coverage runs roughly:
+
+| passes | 1 | 2 | 3 | **5** | 8 | 16 |
+|---|---|---|---|---|---|---|
+| coverage | 43% | 62% | 71% | **80%** | 87% | 94% |
+
+Marginal gain drops below ~3% per pass after the fifth, and false positives —
+which are idiosyncratic and therefore accumulate linearly while true findings
+saturate — put the precision/recall optimum at about five. **Five is the
+default.** Note where the curve is steepest: going from two passes to five is
+worth ~18 points of coverage, which is why a headcount-shaped number is the
+wrong place to stop.
+
+### Correlation, not count, is the binding constraint
+
+More important than *k*. If some fraction *b* of defects sits in a blind spot
+the model shares with itself, the ceiling is `1 − b` no matter how many passes
+run:
+
+| | 4 passes | 16 passes |
+|---|---|---|
+| decorrelated | **77%** | 94% |
+| shared blind spot (b≈0.3) | 54% | **66%** |
+
+Sixteen correlated passes lose to four decorrelated ones. Human reviewers are
+naturally decorrelated — different training, careers, habits. Instances of one
+model on near-identical prompts are closer to one reviewer sampled repeatedly,
+so agent fan-out only pays if the passes are made to differ deliberately.
+
+Spend effort on decorrelation before spending it on count. Levers, by
+effect size:
+
+1. **Different model family** — the largest lever by a wide margin, because the
+   blind spots are genuinely different. Use it if more than one is available.
+2. **Different decomposition axis** — the five passes below each carve the
+   system differently, which is what makes them disagree usefully.
+3. **Different framing** — attacker, maintainer, integrator.
+4. **Different reading order** — weak but free.
+5. **Temperature** — near worthless. Do not rely on it.
+
+Note what is *not* on that list: giving each pass a different **specialty**.
+Specialising decorrelates too, but it costs the property this phase is built on
+— passes with different remits produce agreement that is expected overlap rather
+than evidence. Keep every pass a generalist over the full scope.
 
 You are the **orchestrator** for this phase. Spawn the passes, wait, then
 reconcile. Do not review the code yourself while they run — an orchestrator who
@@ -91,9 +140,10 @@ has formed its own view will anchor the reconciliation.
 
 **Runtime requirement.** This phase needs the `Agent` tool. If it is unavailable
 (some runtimes), skip the orchestration and fall back to sequential simulation:
-two passes with different entry points, the first written to a file and *not
-re-read* before the second is complete. Say in the report which mode was used —
-sequential simulation is weaker and the reader should know.
+sequential passes on different decomposition axes, each written to a file and
+*not re-read* before the next begins. Say in the report which mode was used and
+how many passes ran — sequential simulation is weaker and the reader should
+know.
 
 ### Turn 1 — Prepare the bundle
 
@@ -125,21 +175,34 @@ In **one message**, spawn these as parallel background agents
 [references/pass-prompts.md](references/pass-prompts.md) — use them verbatim,
 substituting real paths.
 
-| Agent | Entry point | Gets |
+| Agent | Decomposition axis | Gets |
 |---|---|---|
 | **Pass A** | Bottom-up — state variables and data structures first, then who writes them | scope, source, context |
-| **Pass B** | Top-down — external entry points first, then what they reach | scope, source, context |
-| **Pass R** | Regression — prior findings only. *Repeat engagements only; skip otherwise* | scope, source, history |
+| **Pass B** | Top-down — external entry points and callbacks first, then what they reach | scope, source, context |
+| **Pass C** | Asset-centric — follow each asset in, through, and out | scope, source, context |
+| **Pass D** | Actor-centric — enumerate every principal, then what each can do | scope, source, context |
+| **Pass E** | Invariant-centric — state the properties that must hold, then break each | scope, source, context |
+| **Pass R** | Regression — prior findings only. *Repeat engagements only; not one of the five* | scope, source, history |
 
-Both A and B apply **all eleven lenses** to the **full scope**. Do not split the
-lenses between them and do not split the files between them — that produces two
-partial reviews whose disagreement means nothing. Their divergence is the
-product, and it only has meaning if both had the opportunity to find everything.
+**Assign different model families across A–E where more than one is available.**
+This is the single highest-value configuration choice in the phase; a note of
+which pass ran on which model belongs in the engagement record.
 
-Pass R is different: it is a checklist task, not a discovery task, so it needs no
-independence and can be told exactly what to look for.
+All five apply **all eleven lenses** to the **full scope**. Do not split the
+lenses between them and do not split the files between them — that produces five
+partial reviews whose disagreement means nothing. The divergence is the product,
+and it only has meaning if each had the opportunity to find everything. The axes
+differ in *where each starts*, never in what it is responsible for.
 
-**Neither A nor B may see the other's output, then or later.**
+Pass R is different: a checklist task, not a discovery task. It needs no
+independence, can be told exactly what to look for, and does not count toward
+the five.
+
+**No pass may see another's output, then or later.**
+
+Scale down only under real cost pressure, and in this order: drop E, then D,
+then C. Three passes reach ~71% modelled coverage against ~80% for five. Below
+three, prefer spending the budget on decorrelating the passes you do run.
 
 ### Turn 3 — Wait
 
@@ -151,21 +214,31 @@ Phase 1 scope write-up or the report skeleton is fine.
 
 ### Turn 4 — Reconcile
 
-Merge per [references/merge-protocol.md](references/merge-protocol.md). The short
-version, and the part that differs from a specialist fan-out:
+Merge per [references/merge-protocol.md](references/merge-protocol.md). Because
+every pass is a generalist over the full scope, the number of passes that raised
+an item is real evidence — but it calibrates very differently from intuition:
 
-- **Both passes found it** → strongest signal in the engagement. Two independent
-  reviews converging is worth more than either one's confidence score. Promote.
-- **One pass found it** → the expected case, not a weak one. Roughly half of real
-  findings come from exactly one reviewer. Adjudicate on the evidence, never
-  discount for being unconfirmed.
-- **The passes disagree** → the highest-value artifact here. One says a guard
-  holds, the other says it does not. Resolve it *in the code*, and record the
-  reasoning — a disagreement between two competent reviews usually marks either a
-  real bug or genuinely unclear code, and both are reportable.
+| raised by | P(real) | what to do |
+|---|---|---|
+| 3–5 of 5 | ~100% | Accept. Minimal adjudication; spend the time on the write-up. |
+| 2 of 5 | ~83% | Strong prior. Light adjudication. |
+| **1 of 5** | **~47%** | **Where the entire adjudication budget goes.** |
 
-Never drop a finding because only one pass raised it. That is the failure mode
-this phase exists to prevent.
+The singleton row is the one that matters. It is a coin flip *and* it is where
+the value is: about **23% of all real findings arrive as singletons, and ~90% of
+the deep ones do** — the subtle defects only one reviewer sees are precisely the
+ones that make the engagement worth paying for. False positives are idiosyncratic
+and so are almost all singletons too, which is why the row sits at 50/50.
+
+The consequence is a rule that must be followed literally: **you cannot triage
+singletons by count.** Discarding them loses more real findings than every other
+merge error combined; accepting them wholesale doubles the false-positive rate.
+Each one gets resolved on its evidence, in the code.
+
+**Disagreements between passes** — one says a guard holds, another says it does
+not — are the highest-value artifact in the merge. Resolve in the code and record
+the reasoning; a disagreement between competent reviews marks either a real bug
+or genuinely unclear code, and both are reportable.
 
 ### Review order within a pass
 
