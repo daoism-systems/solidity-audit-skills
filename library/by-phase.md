@@ -7,6 +7,10 @@ primary lens and optional cross-references.
 
 ## Phase 0 — Pre-audit / readiness
 
+> For a **full autonomous audit**, skip phase-by-phase selection entirely and
+> load `sources/orchestrator/SKILL.md` — it runs every phase below, routes to
+> the relevant skills across all four collections, and cross-verifies.
+
 Before touching the contracts, generate a structured understanding of the
 protocol and flag readiness gaps.
 
