@@ -21,10 +21,28 @@ none, because it copies nothing; see
 [`sources/omega/ATTRIBUTION.md`](sources/omega/ATTRIBUTION.md) for what it was
 derived from and how.
 
-All upstream content was fetched via `git clone --depth 1` on
-**2026-07-20**. The "commit-ish" column is the default branch HEAD at fetch
-time; for a guaranteed reproducible build, pin to a tag from the upstream
-repo.
+## Pinned upstream commits
+
+Upstream content was fetched on **2026-07-20**. The mirrors carry no `.git`, so
+each commit below was recovered by content match — hashing every mirrored file
+and walking upstream history for the commit whose tree matches — and is
+re-verified by `scripts/check_provenance.py`.
+
+| Source | Commit | Dated | Files | Byte-identical |
+|---|---|---|---|---|
+| `sources/pashov/` | [`c577eb7799c349de0acb187ba00ca98e14e436fd`](https://github.com/pashov/skills/commit/c577eb7799c349de0acb187ba00ca98e14e436fd) | 2026-07-09 | 75 | 75 / 75 |
+| `sources/plamen/` | [`795962b96e254f2e423a2635fe7f8cb8ea1e6d69`](https://github.com/PlamenTSV/plamen/commit/795962b96e254f2e423a2635fe7f8cb8ea1e6d69) | 2026-07-15 | 414 | 413 / 414 ¹ |
+| `sources/quillshield/` | [`8bdd3c058704cd855ce29b8e2385708b59152606`](https://github.com/quillai-network/quillshield_skills/commit/8bdd3c058704cd855ce29b8e2385708b59152606) | 2026-03-30 | 85 | 85 / 85 |
+| `sources/omega/` | — | — | 12 skills | original content, no upstream |
+
+¹ `mcp-packages/run-node-mcp.cmd` differs only in line endings: CRLF normalised
+to LF on checkout. Content is otherwise identical. Recorded in that source's
+`known_differences`.
+
+Each figure is also held machine-readably in `sources/<name>/.provenance`, which
+CI validates against what is actually on disk. As of the last verification all
+three mirrors were level with their upstream default branch; a weekly job
+reports drift.
 
 ---
 
@@ -132,14 +150,30 @@ duplicated in any of them.
 
 ## Reproducing this mirror
 
-If you want to rebuild the mirrored parts of `sources/` from scratch:
+To rebuild the mirrored parts of `sources/` **at the exact commits this repo
+carries**, clone and check out the pinned SHAs above:
 
 ```bash
 mkdir -p sources && cd sources
-git clone --depth 1 https://github.com/pashov/skills.git              pashov
-git clone --depth 1 https://github.com/PlamenTSV/plamen.git           plamen
-git clone --depth 1 https://github.com/quillai-network/quillshield_skills.git quillshield
-# Then remove the omitted directories listed above for each repo.
+
+git clone https://github.com/pashov/skills.git pashov
+git -C pashov checkout c577eb7799c349de0acb187ba00ca98e14e436fd
+
+git clone https://github.com/PlamenTSV/plamen.git plamen
+git -C plamen checkout 795962b96e254f2e423a2635fe7f8cb8ea1e6d69
+
+git clone https://github.com/quillai-network/quillshield_skills.git quillshield
+git -C quillshield checkout 8bdd3c058704cd855ce29b8e2385708b59152606
+
+# Then remove the omitted directories listed above for each repo,
+# and the .git directories.
+```
+
+Cloning without the checkout step reproduces *whatever upstream HEAD is today*,
+which is a different artifact. Verify a rebuild with:
+
+```bash
+python3 scripts/check_provenance.py
 ```
 
 `sources/omega/` is not reproducible this way — it is original writing, not a

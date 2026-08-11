@@ -79,7 +79,8 @@ markdown — whatever the editor does with markdown, it does here.
 solidity-audit-skills/
 ├── LICENSE                 # Daoism Systems MIT + per-source attribution block
 ├── README.md               # This file
-├── ATTRIBUTIONS.md         # File-level provenance and copyright notices
+├── ATTRIBUTIONS.md         # File-level provenance, pinned SHAs, copyright notices
+├── scripts/                # Stdlib verification checks, run in CI
 ├── CORRELATIONS.md         # Topic-by-topic overlap matrix (what correlates, what doesn't)
 ├── sources/                # All skill collections
 │   ├── pashov/             # MIRROR — pashov/skills (solidity-auditor + x-ray + fizz)
@@ -112,6 +113,18 @@ Keeping the distinction visible matters for redistribution: a single
 the mirrors, and `ATTRIBUTIONS.md` states per directory which category it falls
 into. `library/` only **points** into `sources/`; it does not duplicate skill
 content.
+
+Each mirror is pinned to an exact upstream commit, recorded both in
+[ATTRIBUTIONS.md](ATTRIBUTIONS.md) and machine-readably in
+`sources/<name>/.provenance`. CI verifies on every PR that those records match
+what is on disk and that every path named in the docs resolves; a weekly job
+reports when an upstream has moved ahead. See [scripts/README.md](scripts/README.md).
+
+```bash
+python3 scripts/check_links.py        # doc references resolve
+python3 scripts/check_frontmatter.py  # SKILL.md frontmatter + name collisions
+python3 scripts/check_provenance.py   # pinned SHAs consistent with disk
+```
 
 ## Licensing — short version
 
