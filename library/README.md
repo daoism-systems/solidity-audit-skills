@@ -15,10 +15,14 @@ Four cross-cuts are provided:
 
 ## Conventions
 
-- **Source tags:** **[P]** pashov, **[L]** plamen, **[Q]** quillshield.
+- **Source tags:** **[P]** pashov, **[L]** plamen, **[Q]** quillshield,
+  **[O]** omega. The first three point into `sources/` (verbatim upstream
+  mirrors); **[O]** points into `sources/omega/` (originally authored by Daoism
+  Systems, distilled from the [Team Omega](https://github.com/OmegaAudits/audits)
+  report archive — see [../sources/omega/README.md](../sources/omega/README.md)).
 - **Coverage symbols:** ●  primary · ◐  partial · ○  none.
 - **Paths** are relative to the repo root (so `sources/pashov/...` not
   `../sources/...`).
 - **"Combines with"** suggestions point to complementary skills in the
-  other two sources — see [../CORRELATIONS.md](../CORRELATIONS.md) for the
+  other sources — see [../CORRELATIONS.md](../CORRELATIONS.md) for the
   full matrix.

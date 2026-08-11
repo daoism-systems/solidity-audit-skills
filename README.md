@@ -20,6 +20,16 @@ everstrat/hackerhouse audit:
 | **plamen** | [PlamenTSV/plamen](https://github.com/PlamenTSV/plamen) | Multi-chain depth + breadth **orchestrator** (EVM/Solana/Sui/Aptos/Soroban/DAML + L1 node clients) |
 | **quillshield** | [quillai-network/quillshield_skills](https://github.com/quillai-network/quillshield_skills) | 10 **topic-focused** plugin skills with rich reference packs and confidence scoring |
 
+A fourth set, [`sources/omega/`](sources/omega/), sits alongside them. Unlike
+the other three it is **originally authored** by Daoism Systems rather than
+mirrored: 8 skills distilled from Team Omega's audit methodology, derived by
+studying their public archive of 55 audit reports (2021–2026). Where the three
+mirrored collections organize by bug class, this set organizes by the questions
+asked of every contract — can assets get back out, does this guard actually
+bind, is this counter right on every path. See
+[sources/omega/README.md](sources/omega/README.md) and
+[sources/omega/ATTRIBUTION.md](sources/omega/ATTRIBUTION.md).
+
 They overlap heavily in topic coverage but each contributes unique material
 (see [CORRELATIONS.md](CORRELATIONS.md)). Mirroring them side-by-side, plus
 a thin concept index that points across, gives a single place to:
@@ -71,13 +81,16 @@ solidity-audit-skills/
 ├── README.md               # This file
 ├── ATTRIBUTIONS.md         # File-level provenance and copyright notices
 ├── CORRELATIONS.md         # Topic-by-topic overlap matrix (what correlates, what doesn't)
-├── sources/                # Verbatim mirrors of each upstream repo
-│   ├── pashov/             # pashov/skills (solidity-auditor + x-ray + fizz methodology)
+├── sources/                # All skill collections
+│   ├── pashov/             # MIRROR — pashov/skills (solidity-auditor + x-ray + fizz)
 │   │   └── LICENSE
-│   ├── plamen/             # PlamenTSV/plamen (agents, skills, rules, prompts)
+│   ├── plamen/             # MIRROR — PlamenTSV/plamen (agents, skills, rules, prompts)
 │   │   └── LICENSE
-│   └── quillshield/        # quillai-network/quillshield_skills (10 plugins)
-│       └── LICENSE
+│   ├── quillshield/        # MIRROR — quillai-network/quillshield_skills (10 plugins)
+│   │   └── LICENSE
+│   └── omega/              # ORIGINAL — 8 skills authored by Daoism Systems
+│       ├── README.md
+│       └── ATTRIBUTION.md  # Corpus studied, derivation method, licensing
 └── library/                # Concept-organized indexes pointing into sources/
     ├── README.md           # How the index is organized
     ├── by-bug-class.md     # Reentrancy, oracle, math, access-control, …
@@ -86,12 +99,19 @@ solidity-audit-skills/
     └── by-role.md          # Orchestrator, attacker, verifier, synthesizer
 ```
 
-`sources/` is the source of truth — files there are untouched copies of the
-upstream repos (with heavy script directories omitted, see
-[ATTRIBUTIONS.md](ATTRIBUTIONS.md)). `library/` only **points** into
-`sources/`; it does not duplicate skill content. That keeps every
-attribution auditable: a single `rg -F "AI Skills Contributors" sources/pashov`
-confirms file lineage.
+`sources/` is the source of truth, and holds two kinds of directory. The three
+**mirrors** — `pashov/`, `plamen/`, `quillshield/` — are untouched copies of
+the upstream repos (with heavy script directories omitted, see
+[ATTRIBUTIONS.md](ATTRIBUTIONS.md)), each keeping its upstream `LICENSE` in
+place. `omega/` is **original writing** by Daoism Systems and carries no
+upstream licence, because it mirrors nothing; its provenance is recorded in
+[sources/omega/ATTRIBUTION.md](sources/omega/ATTRIBUTION.md).
+
+Keeping the distinction visible matters for redistribution: a single
+`rg -F "AI Skills Contributors" sources/pashov` still confirms file lineage for
+the mirrors, and `ATTRIBUTIONS.md` states per directory which category it falls
+into. `library/` only **points** into `sources/`; it does not duplicate skill
+content.
 
 ## Licensing — short version
 

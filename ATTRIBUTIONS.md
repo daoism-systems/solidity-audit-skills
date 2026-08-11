@@ -6,6 +6,21 @@ repository can satisfy the MIT license obligation ("The above copyright
 notice and this permission notice shall be included in all copies or
 substantial portions of the Software") with a single auditable record.
 
+`sources/` holds two kinds of directory, and the distinction is load-bearing
+for licensing:
+
+| Directory | Kind | Copyright |
+|---|---|---|
+| `sources/pashov/` | **Mirror** of `pashov/skills` | © 2024 AI Skills Contributors |
+| `sources/plamen/` | **Mirror** of `PlamenTSV/plamen` | © 2025-2026 Plamen Contributors |
+| `sources/quillshield/` | **Mirror** of `quillai-network/quillshield_skills` | © 2025 QuillShield |
+| `sources/omega/` | **Original** — authored by Daoism Systems | © 2026 Daoism Systems |
+
+Each mirror carries its upstream `LICENSE` verbatim. `sources/omega/` carries
+none, because it copies nothing; see
+[`sources/omega/ATTRIBUTION.md`](sources/omega/ATTRIBUTION.md) for what it was
+derived from and how.
+
 All upstream content was fetched via `git clone --depth 1` on
 **2026-07-20**. The "commit-ish" column is the default branch HEAD at fetch
 time; for a guaranteed reproducible build, pin to a tag from the upstream
@@ -98,11 +113,11 @@ upstream repo is included; the repo is small (~848 KB total).
 
 ---
 
-## Aggregation-layer files (this repo's root and `library/`)
+## Originally-authored files (root, `library/`, and `sources/omega/`)
 
-These files are original editorial work by Daoism Systems, released under
-the same MIT terms as the upstream sources for convenience. Skill content is
-**never** duplicated here — these files only point into `sources/`.
+These are original work by Daoism Systems, released under the same MIT terms
+as the upstream sources for convenience. No upstream skill content is
+duplicated in any of them.
 
 | File | Original authorship |
 |---|---|
@@ -111,12 +126,13 @@ the same MIT terms as the upstream sources for convenience. Skill content is
 | `ATTRIBUTIONS.md` (this file) | © 2026 Daoism Systems. |
 | `CORRELATIONS.md` | © 2026 Daoism Systems. The correlation analysis is original editorial work; skill descriptions paraphrase upstream SKILL.md frontmatter. |
 | `library/*.md` | © 2026 Daoism Systems. Indexes point to upstream files; no skill content is duplicated. |
+| `sources/omega/**` | © 2026 Daoism Systems. Original skill prose derived from the methodology in [OmegaAudits/audits](https://github.com/OmegaAudits/audits); no Team Omega report text is reproduced. Full derivation record in [`sources/omega/ATTRIBUTION.md`](sources/omega/ATTRIBUTION.md). |
 
 ---
 
 ## Reproducing this mirror
 
-If you want to rebuild `sources/` from scratch:
+If you want to rebuild the mirrored parts of `sources/` from scratch:
 
 ```bash
 mkdir -p sources && cd sources
@@ -125,5 +141,8 @@ git clone --depth 1 https://github.com/PlamenTSV/plamen.git           plamen
 git clone --depth 1 https://github.com/quillai-network/quillshield_skills.git quillshield
 # Then remove the omitted directories listed above for each repo.
 ```
+
+`sources/omega/` is not reproducible this way — it is original writing, not a
+clone, and has no upstream to fetch.
 
 Pin to a specific tag (`--branch vX.Y.Z`) for reproducible provenance.
