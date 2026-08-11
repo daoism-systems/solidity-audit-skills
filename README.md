@@ -1,13 +1,61 @@
 # solidity-audit-skills
 
-A curated aggregation of three MIT-licensed smart-contract audit skill
-collections, organized so an agent (Claude Code, Cursor, Codex, Gemini) can
-locate the right methodology for a given task without re-deriving it from
-scratch.
+> ## ▶ If you are an agent, start here
+>
+> **You have been given this library because someone wants a codebase audited.**
+> Load and follow:
+>
+> ```
+> sources/orchestrator/SKILL.md
+> ```
+>
+> It runs the whole audit unattended: profiles the target, selects every
+> relevant skill across all four collections, dispatches four methodology
+> orchestrators in parallel — each fanning out to its own subagents, ~30–45 in
+> total — then cross-verifies every finding across methodologies and writes the
+> report.
+>
+> **Do not ask the user which skills to use, how deep to go, or whether to
+> proceed.** Choose from the routing table, record the choice, keep going. Do
+> not audit the code yourself first — that anchors the verification tier.
+>
+> Everything else in this README is reference material for humans.
+
+---
+
+A curated aggregation of MIT-licensed smart-contract audit skill collections,
+organized so an agent (Claude Code, Cursor, Codex, Gemini) can run a full audit
+unattended, or locate the right methodology for a narrower task without
+re-deriving it from scratch.
 
 Maintained by **Daoism Systems**. Aggregation copyright © 2026
 Daoism Systems; upstream skill content retains the copyright of each
 upstream repo (see [LICENSE](LICENSE) and [ATTRIBUTIONS.md](ATTRIBUTIONS.md)).
+
+## Running an audit
+
+Point any capable agent at this repository and name your target:
+
+```
+Audit https://github.com/org/contracts using
+https://github.com/daoism-systems/solidity-audit-skills
+```
+
+That is the whole interface. The agent reads the block above, loads
+[`sources/orchestrator/SKILL.md`](sources/orchestrator/SKILL.md), and runs:
+
+| Tier | What happens |
+|---|---|
+| **0** | Clone, build, run tests, profile the platform and feature signals, apply the [routing table](sources/orchestrator/references/routing-table.md), print a coverage manifest |
+| **1** | Four methodology orchestrators in parallel — pashov (adversarial), omega (structural), quillshield (cataloged), plamen (language-native) |
+| **2** | Each fans out to its own leaf agents — ~30–45 across the four |
+| **3** | Cross-methodology verification, then the report |
+
+The design principle at tier 3: **agreement across methodologies is the
+strongest evidence available**, because four independent teams wrote them with
+different blind spots — while a finding from only one methodology is not weak,
+it is precisely what that methodology exists for. See
+[cross-verification.md](sources/orchestrator/references/cross-verification.md).
 
 ## Why this exists
 
@@ -20,10 +68,15 @@ everstrat/hackerhouse audit:
 | **plamen** | [PlamenTSV/plamen](https://github.com/PlamenTSV/plamen) | Multi-chain depth + breadth **orchestrator** (EVM/Solana/Sui/Aptos/Soroban/DAML + L1 node clients) |
 | **quillshield** | [quillai-network/quillshield_skills](https://github.com/quillai-network/quillshield_skills) | 10 **topic-focused** plugin skills with rich reference packs and confidence scoring |
 
-A fourth set, [`sources/omega/`](sources/omega/), sits alongside them. Unlike
-the other three it is **originally authored** by Daoism Systems rather than
-mirrored: 8 skills distilled from Team Omega's audit methodology, derived by
-studying their public archive of 55 audit reports (2021–2026). Where the three
+Two further sets sit alongside them, both **originally authored** by Daoism
+Systems rather than mirrored.
+[`sources/orchestrator/`](sources/orchestrator/) is the autonomous entry point
+described above — it owns routing and cross-methodology verification, and holds
+no audit knowledge of its own.
+
+[`sources/omega/`](sources/omega/) is a full methodology: 12 skills distilled
+from Team Omega's audit methodology, derived by studying their public archive of
+55 audit reports (2021–2026). Where the three
 mirrored collections organize by bug class, this set organizes by the questions
 asked of every contract — can assets get back out, does this guard actually
 bind, is this counter right on every path. See
@@ -49,8 +102,9 @@ your project workspace (or anywhere the editor indexes):
 git clone https://github.com/daoism-systems/solidity-audit-skills.git
 ```
 
-Then reference any skill file with `@` in chat (Cursor, Claude Code) or
-include it via the agent's file-loading mechanism (Codex, Gemini):
+For a **full audit**, just point the agent at the repo — see *Running an audit*
+above. To load a **single** skill by hand, reference it with `@` in chat (Cursor,
+Claude Code) or via the agent's file-loading mechanism (Codex, Gemini):
 
 ```
 @solidity-audit-skills/sources/pashov/solidity-auditor/SKILL.md
@@ -83,13 +137,14 @@ solidity-audit-skills/
 ├── scripts/                # Stdlib verification checks, run in CI
 ├── CORRELATIONS.md         # Topic-by-topic overlap matrix (what correlates, what doesn't)
 ├── sources/                # All skill collections
+│   ├── orchestrator/       # ORIGINAL — autonomous audit entry point (start here)
 │   ├── pashov/             # MIRROR — pashov/skills (solidity-auditor + x-ray + fizz)
 │   │   └── LICENSE
 │   ├── plamen/             # MIRROR — PlamenTSV/plamen (agents, skills, rules, prompts)
 │   │   └── LICENSE
 │   ├── quillshield/        # MIRROR — quillai-network/quillshield_skills (10 plugins)
 │   │   └── LICENSE
-│   └── omega/              # ORIGINAL — 8 skills authored by Daoism Systems
+│   └── omega/              # ORIGINAL — 12-skill methodology by Daoism Systems
 │       ├── README.md
 │       └── ATTRIBUTION.md  # Corpus studied, derivation method, licensing
 └── library/                # Concept-organized indexes pointing into sources/

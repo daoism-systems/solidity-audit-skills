@@ -4,6 +4,11 @@ The files in this directory are editorial indexes. They **point** into
 `sources/`; they do not duplicate skill content. Every entry has a relative
 link back to the upstream mirror file so attribution is one click away.
 
+> **Running a full audit?** You do not need these indexes — load
+> [`../sources/orchestrator/SKILL.md`](../sources/orchestrator/SKILL.md), which
+> routes automatically across all four collections. These cross-cuts are for
+> picking a *specific* lens by hand.
+
 Four cross-cuts are provided:
 
 | File | Organizes by | Use when |
