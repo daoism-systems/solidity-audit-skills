@@ -52,33 +52,31 @@ Find candidate bugs across the full in-scope codebase. Two strategies:
 | Source | File | Specialty |
 |---|---|---|
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/math-precision-agent.md` | Arithmetic / precision / scale mixing. |
-| **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/access-control-agent.md` | Permission models. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/economic-security-agent.md` | External dependencies / value flows / MEV. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/execution-trace-agent.md` | Encoding / storage / branching / state transitions. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/invariant-agent.md` | Conservation laws / state couplings. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/periphery-agent.md` | Libraries / helpers / encoders. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/first-principles-agent.md` | Implicit assumptions. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/asymmetry-agent.md` | Paired-function asymmetries. |
-| **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/boundary-agent.md` | Per-call-site corner cases. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/numerical-gap-agent.md` | Gap-hunter: precision × invariant × boundary seam. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/trust-gap-agent.md` | Gap-hunter: access × economics × asymmetry seam. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/flow-gap-agent.md` | Gap-hunter: execution × periphery × first-principles seam. |
 | **[O]** | `sources/omega/omega-asset-exit-paths/SKILL.md` | First-pass sweep: inventory every asset the contract can hold and build the ways-in/ways-out table before reading logic closely. |
 | **[O]** | `sources/omega/omega-audit-workflow/SKILL.md` | Phase 3 orchestration — spawns five independent review passes as parallel subagents on different decomposition axes (state, entry points, assets, actors, invariants), then reconciles with corroboration-tiered adjudication. Prompts, merge protocol and shared finding format live in its `references/`. |
 
-### Strategy B — Topic-by-topic plugin scan (quillshield)
+### Strategy B — Topic-by-topic plugin scan (quillshield + symbiosis)
 
 | Source | File | Topic |
 |---|---|---|
 | **[Q]** | `sources/quillshield/plugins/reentrancy-pattern-analysis/skills/reentrancy-pattern-analysis/SKILL.md` | Reentrancy (all 4 variants). |
-| **[Q]** | `sources/quillshield/plugins/oracle-flashloan-analysis/skills/oracle-flashloan-analysis/SKILL.md` | Oracle manipulation / flash loans. |
 | **[Q]** | `sources/quillshield/plugins/input-arithmetic-safety/skills/input-arithmetic-safety/SKILL.md` | Input validation / arithmetic. |
-| **[Q]** | `sources/quillshield/plugins/external-call-safety/skills/external-call-safety/SKILL.md` | External calls / weird ERC20. |
-| **[Q]** | `sources/quillshield/plugins/state-invariant-detection/skills/state-invariant-detection/SKILL.md` | Broken invariants. |
-| **[Q]** | `sources/quillshield/plugins/semantic-guard-analysis/skills/semantic-guard-analysis/SKILL.md` | Inconsistent guards. |
 | **[Q]** | `sources/quillshield/plugins/proxy-upgrade-safety/skills/proxy-upgrade-safety/SKILL.md` | Proxy / upgrade safety. |
-| **[Q]** | `sources/quillshield/plugins/signature-replay-analysis/skills/signature-replay-analysis/SKILL.md` | Signature / replay. |
 | **[Q]** | `sources/quillshield/plugins/dos-griefing-analysis/skills/dos-griefing-analysis/SKILL.md` | DoS / griefing. |
+| **[S]** | `sources/symbiosis/oracle-flashloan-analysis/SKILL.md` | Oracle manipulation / flash loans. |
+| **[S]** | `sources/symbiosis/external-call-safety/SKILL.md` | External calls / weird ERC20. |
+| **[S]** | `sources/symbiosis/invariant-conservation/SKILL.md` | Broken invariants. |
+| **[S]** | `sources/symbiosis/guard-consistency/SKILL.md` | Inconsistent guards / permission models. |
+| **[S]** | `sources/symbiosis/signature-replay/SKILL.md` | Signature / replay. |
 
 ### Strategy C — Multi-language per-language breadth (plamen)
 
@@ -97,12 +95,12 @@ depth agents have the strongest "mandatory analysis checks" discipline.
 | Source | File | Specialty |
 |---|---|---|
 | **[L]** | `sources/plamen/agents/depth-edge-case.md` | Boundary / zero-state / dust / off-by-one. Mandatory always-on boundary checklist. |
-| **[L]** | `sources/plamen/agents/depth-state-trace.md` | Cross-function state mutation, constraint enforcement, cache lifecycle set-cover. |
+| **[L]** | `sources/plamen/agents/depth-state-trace.md` | Cross-function state mutation, constraint enforcement, cache lifecycle set-cover (EVM dispatch superseded by [S] `invariant-conservation`). |
 | **[L]** | `sources/plamen/agents/depth-token-flow.md` | Token entry/exit paths, donation attacks, approval collisions, type separation. |
 | **[L]** | `sources/plamen/agents/depth-external.md` | External call side effects, cross-chain timing, MEV vectors. |
 | **[L]** | `sources/plamen/agents/depth-consensus-invariant.md` | L1 consensus safety / liveness invariants (Byzantine-scenario reasoning). |
 | **[L]** | `sources/plamen/agents/depth-network-surface.md` | L1 p2p/RPC/mempool attack surface. |
-| **[L]** | `sources/plamen/agents/skills/niche/*.md` | Flag-triggered standalone depth agents (signature-verification, semantic-gap, semantic-consistency, spec-compliance, event-completeness, multi-step-operation, callback-receiver, dimensional-analysis, stableswap-compliance). |
+| **[L]** | `sources/plamen/agents/skills/niche/*.md` | Flag-triggered standalone depth agents (semantic-gap, semantic-consistency, spec-compliance, event-completeness, multi-step-operation, callback-receiver, dimensional-analysis, stableswap-compliance; signature-verification merged into [S] for EVM, kept upstream for other languages). |
 | **[O]** | `sources/omega/omega-enforceability-check/SKILL.md` | Per-guard: who is it meant to constrain, and what is the cheapest way for them to act anyway? |
 | **[O]** | `sources/omega/omega-accounting-consistency/SKILL.md` | Per-counter: every path that changes the underlying thing updates the summary. |
 | **[O]** | `sources/omega/omega-external-data-trust/SKILL.md` | Per-external-input: what is it trusted for, what if it is wrong or stale, who benefits. |

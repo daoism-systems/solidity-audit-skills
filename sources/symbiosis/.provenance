@@ -1,0 +1,43 @@
+{
+  "name": "symbiosis",
+  "kind": "derived",
+  "derived_date": "2026-08-19",
+  "upstream": null,
+  "files_mirrored": 16,
+  "upstreams": [
+    {
+      "name": "pashov",
+      "repo": "https://github.com/pashov/skills",
+      "commit": "c577eb7799c349de0acb187ba00ca98e14e436fd",
+      "files": [
+        "solidity-auditor/references/hacking-agents/boundary-agent.md -> external-call-safety",
+        "solidity-auditor/references/hacking-agents/access-control-agent.md -> guard-consistency"
+      ]
+    },
+    {
+      "name": "plamen",
+      "repo": "https://github.com/PlamenTSV/plamen",
+      "commit": "795962b96e254f2e423a2635fe7f8cb8ea1e6d69",
+      "files": [
+        "agents/skills/evm/oracle-analysis/SKILL.md -> oracle-flashloan-analysis",
+        "agents/skills/evm/flash-loan-interaction/SKILL.md -> oracle-flashloan-analysis",
+        "agents/depth-state-trace.md -> invariant-conservation",
+        "agents/skills/niche/signature-verification-audit/SKILL.md -> signature-replay"
+      ]
+    },
+    {
+      "name": "quillshield",
+      "repo": "https://github.com/quillai-network/quillshield_skills",
+      "commit": "8bdd3c058704cd855ce29b8e2385708b59152606",
+      "files": [
+        "plugins/oracle-flashloan-analysis/ -> oracle-flashloan-analysis",
+        "plugins/state-invariant-detection/ -> invariant-conservation",
+        "plugins/signature-replay-analysis/ -> signature-replay",
+        "plugins/external-call-safety/ -> external-call-safety",
+        "plugins/semantic-guard-analysis/ -> guard-consistency"
+      ]
+    }
+  ],
+  "note": "Not a mirror. Each skill here is a union-merge of duplicated skills removed from the three upstream mirrors, deduplicating only substantively identical checklist rows. Upstream MIT notices carry over; see README.md for the full merge map. The originals are documented as removed in each mirror's known_differences.",
+  "license": "MIT; content (c) respective upstream contributors, merge (c) 2026 Daoism Systems"
+}

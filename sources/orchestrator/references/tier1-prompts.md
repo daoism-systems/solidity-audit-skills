@@ -1,21 +1,21 @@
 # Tier 1 Prompts
 
-Verbatim templates for the four methodology orchestrators. Spawn all four in
+Verbatim templates for the five methodology orchestrators. Spawn all five in
 **one message** as parallel background agents (`run_in_background: true`,
 `subagent_type: "general-purpose"`). Substitute `{lib}` (path to this library),
 `{bundle}`, and the manifest lines from Tier 0.
 
 Each of these spawns its own tier-2 agents. Where more than one model family is
-available, assign different families across the four — they are already
+available, assign different families across the five — they are already
 decorrelated by construction, and different models widen that further.
 
 ## Shared preamble
 
-Prepend to all four:
+Prepend to all five:
 
 ```
-You are one of four methodology orchestrators in an autonomous security audit.
-The other three run different methodologies over the same code, in parallel.
+You are one of five methodology orchestrators in an autonomous security audit.
+The other four run different methodologies over the same code, in parallel.
 You will not see their output and must not speculate about it — overlap is
 expected and useful.
 
@@ -53,10 +53,10 @@ orchestration, with these substitutions for this run:
 - Skip its Turn 1b model-selection question. No human is available; use your
   own model family for all agents.
 - Source is already bundled at {bundle}/source.md — do not re-derive scope.
-- Build the 12 agent bundles as that skill describes, appending each specialty
+- Build the 10 agent bundles as that skill describes, appending each specialty
   file from references/hacking-agents/ plus senior-auditor-sop.md and
   shared-rules.md.
-- Spawn all 12 in one message, in parallel, in the background.
+- Spawn all 10 in one message, in parallel, in the background.
 
 After they complete, run that skill's Turn 4 dedup and its four judging gates
 (references/judging.md). Then TRANSLATE the surviving findings into
@@ -145,6 +145,42 @@ Then run that methodology's own verification pass
 before translating to {bundle}/finding-format.md.
 
 Return: verified findings, LEADs, and a CLEARED list.
+```
+
+## symbiosis — merged duplicate lenses
+
+```
+Run the symbiosis merged-lens methodology.
+
+Each skill in {lib}/sources/symbiosis/<name>/ is a union merge of two or three
+skills from the other collections that covered the same ground (pashov
+attacker files, plamen audit skills, quillshield plugins). The originals are
+gone; your job is to run each merged skill exhaustively so their combined
+coverage survives with one agent instead of three.
+
+Spawn ONE agent per symbiosis lens named in {bundle}/manifest.md, all in one
+message, parallel, background. For each agent:
+
+- Load the FULL skill directory: {lib}/sources/symbiosis/<name>/SKILL.md plus
+  every file in its references/ — those are the reference packs inherited from
+  quillshield and they are where the depth lives.
+- Work the merged methodology end to end over the whole codebase: every
+  checklist item, every table, every CHECK — both lens halves. A merged skill
+  is not "either half suffices"; the pashov/plamen half contributes the
+  attacker discipline or systematic procedure, the quillshield half the
+  taxonomy and reference catalogs. Skipping a half silently drops coverage the
+  original skills provided.
+- CRITICAL — lens attribution: every finding's `rationale` field must state
+  which constituent lens produced it, using the skill's own tags ([P] pashov /
+  [L] plamen / [Q] quillshield). The cross-verification tier counts
+  methodologies, and a symbiosis finding tagged with two constituent lenses
+  counts as two independent votes. Without the tag the calibration is lost.
+
+Translate to {bundle}/finding-format.md. Do not merge away items between your
+own lenses — that is the cross-verification tier's job.
+
+Return: findings from every lens (with lens tags), LEADs, and a CLEARED list
+per lens.
 ```
 
 ---

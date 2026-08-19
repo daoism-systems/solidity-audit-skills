@@ -1,12 +1,12 @@
 # Routing Table
 
-Maps profile signals to skills across all four collections. Apply every row
+Maps profile signals to skills across all five collections. Apply every row
 whose trigger fires; a skill may be pulled in by several rows and is loaded once.
 
 **When a trigger is ambiguous, treat it as firing.** A skill that finds nothing
 costs one agent. A skill left unloaded costs a finding.
 
-Source tags: **[P]** pashov · **[L]** plamen · **[Q]** quillshield · **[O]** omega.
+Source tags: **[P]** pashov · **[L]** plamen · **[Q]** quillshield · **[O]** omega · **[S]** symbiosis (merged lenses — where a topic was duplicated across collections, the merged skill replaces all its originals; see `sources/symbiosis/README.md`).
 
 ---
 
@@ -16,13 +16,13 @@ These load regardless of what the profile says.
 
 | Skill | Orchestrator |
 |---|---|
-| All 12 attacker agents in `sources/pashov/solidity-auditor/references/hacking-agents/` | pashov |
+| All 10 attacker agents in `sources/pashov/solidity-auditor/references/hacking-agents/` | pashov |
 | All 11 omega lenses (`sources/omega/omega-*`) across 5 independent passes | omega |
-| **[Q]** `semantic-guard-analysis` — guards other functions consistently apply | quillshield |
-| **[Q]** `state-invariant-detection` — inferred invariants and their violators | quillshield |
+| **[S]** `guard-consistency` — guards other functions consistently apply (merged quillshield semantic-guard + pashov access-control attacker) | symbiosis |
+| **[S]** `invariant-conservation` — inferred invariants and their violators (merged quillshield state-invariant + plamen state-trace depth procedure) | symbiosis |
 | **[Q]** `behavioral-state-analysis` — contract-type scoping and threat selection | quillshield |
 | **[L]** `agents/depth-edge-case.md` — the `{0, 1, max, boundary±1, empty}` sweep | plamen |
-| **[L]** `agents/depth-state-trace.md` — cross-function state mutation tracing | plamen |
+| **[L]** `agents/depth-state-trace.md` — cross-function state mutation tracing (kept in plamen for its internal pipeline; overlaps symbiosis invariant-conservation — Tier 3 counts the [L] tag only once) | plamen |
 | **[L]** `agents/skills/evm/verification-protocol` | plamen |
 
 **Pre-audit, run first at Tier 0:** **[P]** `sources/pashov/x-ray/SKILL.md`
@@ -34,7 +34,7 @@ readiness and feeds the General section.
 
 | Profile platform | Load |
 |---|---|
-| EVM / Solidity | **[L]** `agents/skills/evm/*` (18 skills) |
+| EVM / Solidity | **[L]** `agents/skills/evm/*` (15 skills in the mirror; the oracle and flash-loan lenses moved to symbiosis) |
 | Solana / Anchor | **[L]** `agents/skills/solana/*` |
 | Sui / Move | **[L]** `agents/skills/sui/*` |
 | Aptos / Move | **[L]** `agents/skills/aptos/*` |
@@ -44,7 +44,10 @@ readiness and feeds the General section.
 
 **Non-EVM note.** pashov and quillshield are EVM-specific — load them only for
 EVM targets. The omega lenses are language-agnostic (they ask structural
-questions, not Solidity questions) and should run on any platform.
+questions, not Solidity questions) and should run on any platform. The
+symbiosis lenses derive from EVM-specific skills; for non-EVM targets load only
+`signature-replay` (its plamen half is multi-chain) and prefer the platform
+pack's native equivalents for the rest.
 
 ## 3. Feature triggers
 
@@ -62,16 +65,18 @@ diff between two commits.
 **Fires on:** `latestRoundData`, `AggregatorV3Interface`, `observe(`,
 `consult(`, `getPtTo`, `slot0`, TWAP, any price API client.
 
-**[Q]** `oracle-flashloan-analysis` · **[O]** `omega-external-data-trust` ·
-**[L]** `evm/oracle-analysis` · **[L]** `evm/external-precondition-audit` ·
+**[S]** `oracle-flashloan-analysis` (merged plamen oracle + plamen flash-loan +
+quillshield oracle-flashloan; load the full skill dir including references) ·
+**[O]** `omega-external-data-trust` · **[L]** `evm/external-precondition-audit` ·
 **[P]** `economic-security-agent`
 
 ### Signatures and meta-transactions
 **Fires on:** `ecrecover`, `ECDSA`, `_TYPEHASH`, `DOMAIN_SEPARATOR`, `permit`,
 `isValidSignature`, `nonces`, a relayer or forwarder.
 
-**[Q]** `signature-replay-analysis` · **[L]** `niche/signature-verification-audit`
-· **[O]** `omega-standard-conformance` · **[O]** `omega-ordering-and-approval-races`
+**[S]** `signature-replay` (merged plamen niche + quillshield; covers the
+multi-chain CHECKs and ID-binding/Merkle-linkage classes) ·
+**[O]** `omega-standard-conformance` · **[O]** `omega-ordering-and-approval-races`
 
 ### Vaults, shares, receipt tokens
 **Fires on:** `ERC4626`, `convertToShares`, `previewDeposit`, `totalAssets`,
@@ -94,7 +99,7 @@ diff between two commits.
 `_beforeTokenTransfer` with a list lookup, a transfer hook.
 
 **[O]** `omega-transfer-restriction-hooks` (primary) ·
-**[O]** `omega-enforceability-check` · **[Q]** `semantic-guard-analysis`
+**[O]** `omega-enforceability-check` · **[S]** `guard-consistency`
 
 ### Epochs, checkpoints, voting power, vesting
 **Fires on:** `epoch`, `checkpoint`, `getPastVotes`, `balanceOfAt`, `delegate`,
@@ -108,14 +113,16 @@ diff between two commits.
 **Fires on:** `.call{value:`, `safeTransfer`, arbitrary ERC-20 addresses,
 integration with any third-party protocol.
 
-**[Q]** `external-call-safety` · **[Q]** `reentrancy-pattern-analysis` ·
-**[P]** `boundary-agent` · **[L]** `niche/callback-receiver-safety` ·
+**[S]** `external-call-safety` (merged pashov boundary attacker + quillshield
+external-call catalog) · **[Q]** `reentrancy-pattern-analysis` ·
+**[L]** `niche/callback-receiver-safety` ·
 **[L]** `evm/external-precondition-audit` · **[O]** `omega-standard-conformance`
 
 ### Flash loans
 **Fires on:** `flashLoan`, `executeOperation`, `onFlashLoan`, `receiveFlashLoan`.
 
-**[L]** `evm/flash-loan-interaction` · **[Q]** `oracle-flashloan-analysis` ·
+**[S]** `oracle-flashloan-analysis` (Part B covers flash-loan state inventory,
+atomic attack sequences, cross-function chains, defenses) ·
 **[O]** `omega-ordering-and-approval-races` · **[P]** `economic-security-agent`
 
 ### Cross-chain and bridges
@@ -125,7 +132,7 @@ integration with any third-party protocol.
 **[L]** `evm/cross-chain-message-integrity` · **[L]** `evm/cross-chain-timing` ·
 **[L]** `injectable/cross-vm-serialization-conformance` ·
 **[O]** `omega-ordering-and-approval-races` · **[O]** `omega-external-data-trust`
-· **[Q]** `signature-replay-analysis`
+· **[S]** `signature-replay` (cross-chain replay + CHECK 9 ID binding)
 
 ### Queues, batches, loops over user data
 **Fires on:** iteration over an array of users/tokens/strategies, a request
@@ -186,15 +193,16 @@ PLATFORM: <evm|solana|sui|aptos|soroban|daml|l1>   SCOPE: <full|diff a..b>
 TRIGGERS FIRED: upgradeability, oracles, vaults, queues, off-chain
 TRIGGERS NOT FIRED: flash loans, cross-chain, NFT, account abstraction, governance
 
-pashov       12 attacker agents
+pashov       10 attacker agents
 omega        11 lenses x 5 passes (+1 regression)
-quillshield  7 plugins: proxy-upgrade, oracle-flashloan, input-arithmetic,
-             external-call, reentrancy, dos-griefing, semantic-guard,
-             state-invariant, behavioral-state
-plamen       evm pack (18) + vault-accounting, lending-protocol-security,
+quillshield  5 plugins: behavioral-state, proxy-upgrade, input-arithmetic,
+             reentrancy, dos-griefing (+ defender when CI/CD in scope)
+plamen       evm pack (15) + vault-accounting, lending-protocol-security,
              depth-edge-case, depth-state-trace, depth-external
+symbiosis    5 merged lenses: oracle-flashloan-analysis, invariant-conservation,
+             signature-replay, external-call-safety, guard-consistency
 
-TOTAL: ~38 leaf agents across 4 methodologies
+TOTAL: ~32 leaf agents across 5 methodologies
 SKIPPED: solana/sui/aptos/soroban/daml packs (platform), l1 pack (platform),
          nft-protocol-security (no trigger), account-abstraction (no trigger)
 ```

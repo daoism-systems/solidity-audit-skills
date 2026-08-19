@@ -342,7 +342,7 @@ Model BOTH attack types:
 1. BORROW → 2. MANIPULATE → 3. CALL target function → 4. EXTRACT value → 5. RESTORE → 6. REPAY
 7. Compute: profit = extracted_value - flash_fee - gas. If profit > 0 → FINDING.
 
-**Action**: For every function with a balance/oracle/threshold/rate precondition, check if a flash loan can satisfy it atomically. See FLASH_LOAN_INTERACTION skill for full methodology.
+**Action**: For every function with a balance/oracle/threshold/rate precondition, check if a flash loan can satisfy it atomically. Full methodology: in this library, the merged lens lives at `sources/symbiosis/oracle-flashloan-analysis/SKILL.md` (FLASH_LOAN + ORACLE combined).
 
 ---
 
@@ -367,7 +367,7 @@ Model BOTH attack types:
 | Chained feed deviation | Multi-feed derived prices: sum individual deviations; compare total vs LTV buffer | Phantom solvency, wrongful borrowing within compounded deviation |
 | Hardcoded stablecoin price | No asset priced as a hardcoded constant (1e8, 1e18); all assets use oracle | Depeg event → protocol uses wrong price, bad debt |
 
-**Action**: For every oracle data consumption point, verify ALL applicable checks from the table above. Missing checks → FINDING at severity based on impact. See ORACLE_ANALYSIS skill for full methodology.
+**Action**: For every oracle data consumption point, verify ALL applicable checks from the table above. Missing checks → FINDING at severity based on impact. Full methodology: in this library, the merged lens lives at `sources/symbiosis/oracle-flashloan-analysis/SKILL.md` (ORACLE + FLASH_LOAN combined).
 - For every oracle configuration setter (window size, max deviation, heartbeat), check: can the parameter be set to a value that effectively disables the oracle validation? If yes → FINDING (Rule 14 setter regression applies).
 
 ---

@@ -23,10 +23,9 @@
 - [ ] All expected analysis_*.md files exist?
 - [ ] All findings have Step Execution fields?
 - [ ] All findings have Rules Applied field [R4, R5, R6, R8, R9, R10, R11, R12, R13, R14, R15, R16]?
-- [ ] FLASH_LOAN_INTERACTION skill instantiated if FLASH_LOAN flag detected? (R15)
-- [ ] ORACLE_ANALYSIS skill instantiated if ORACLE flag detected? (R16)
-- [ ] Breadth agent count â‰¤ target from merge hierarchy? If exceeded, skills merged per M1-M5 priority? (FLASH_LOAN and ORACLE_ANALYSIS never merged)
-- [ ] ORACLE_ANALYSIS skill NOT merged with any other agent?
+- [ ] FLASH_LOAN_INTERACTION skill instantiated if FLASH_LOAN flag detected? (R15 — in this library, merged into the symbiosis oracle-flashloan-analysis lens)
+- [ ] ORACLE_ANALYSIS skill instantiated if ORACLE flag detected? (R16 — same merged lens)
+- [ ] Breadth agent count ≤ target from merge hierarchy? If exceeded, skills merged per M1-M5 priority? (In this library FLASH_LOAN and ORACLE_ANALYSIS are pre-merged into the symbiosis lens)
 - [ ] ECONOMIC_DESIGN_AUDIT skill instantiated if MONETARY_PARAMETER flag detected?
 - [ ] EXTERNAL_PRECONDITION_AUDIT skill instantiated if external interactions detected?
 

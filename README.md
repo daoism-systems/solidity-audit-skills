@@ -10,8 +10,8 @@
 > ```
 >
 > It runs the whole audit unattended: profiles the target, selects every
-> relevant skill across all four collections, dispatches four methodology
-> orchestrators in parallel — each fanning out to its own subagents, ~30–45 in
+> relevant skill across all five collections, dispatches five methodology
+> orchestrators in parallel — each fanning out to its own subagents, ~25–35 in
 > total — then cross-verifies every finding across methodologies and writes the
 > report.
 >
@@ -47,14 +47,16 @@ That is the whole interface. The agent reads the block above, loads
 | Tier | What happens |
 |---|---|
 | **0** | Clone, build, run tests, profile the platform and feature signals, apply the [routing table](sources/orchestrator/references/routing-table.md), print a coverage manifest |
-| **1** | Four methodology orchestrators in parallel — pashov (adversarial), omega (structural), quillshield (cataloged), plamen (language-native) |
-| **2** | Each fans out to its own leaf agents — ~30–45 across the four |
+| **1** | Five methodology orchestrators in parallel — pashov (adversarial), omega (structural), quillshield (cataloged), plamen (language-native), symbiosis (union lenses) |
+| **2** | Each fans out to its own leaf agents — ~25–35 across the five |
 | **3** | Cross-methodology verification, then the report |
 
 The design principle at tier 3: **agreement across methodologies is the
 strongest evidence available**, because four independent teams wrote them with
 different blind spots — while a finding from only one methodology is not weak,
-it is precisely what that methodology exists for. See
+it is precisely what that methodology exists for. Symbiosis findings carry a
+lens tag naming the methodology a row came from, so they still count toward
+that methodology. See
 [cross-verification.md](sources/orchestrator/references/cross-verification.md).
 
 ## Why this exists
@@ -64,9 +66,18 @@ everstrat/hackerhouse audit:
 
 | Source | Upstream | Strength |
 |---|---|---|
-| **pashov** | [pashov/skills](https://github.com/pashov/skills) | 12-agent **parallel attacker** methodology (`solidity-auditor`) + pre-audit `x-ray` + fuzz/invariant `fizz` |
+| **pashov** | [pashov/skills](https://github.com/pashov/skills) | 10-agent **parallel attacker** methodology (`solidity-auditor`) + pre-audit `x-ray` + fuzz/invariant `fizz` |
 | **plamen** | [PlamenTSV/plamen](https://github.com/PlamenTSV/plamen) | Multi-chain depth + breadth **orchestrator** (EVM/Solana/Sui/Aptos/Soroban/DAML + L1 node clients) |
-| **quillshield** | [quillai-network/quillshield_skills](https://github.com/quillai-network/quillshield_skills) | 10 **topic-focused** plugin skills with rich reference packs and confidence scoring |
+| **quillshield** | [quillai-network/quillshield_skills](https://github.com/quillai-network/quillshield_skills) | Topic-focused **plugin** skills with rich reference packs and confidence scoring (5 of 10 remain; 5 merged into symbiosis) |
+
+A fourth set is **derived** from those three:
+[`sources/symbiosis/`](sources/symbiosis/) holds one skill per topic where
+two or more upstreams shipped overlapping ones — oracle/flash-loan, invariant
+conservation, signature replay, external call safety, guard consistency. Each
+symbiosis skill is a union of its originals (nothing dropped but duplicated
+rows) with a lens tag per row, so the audit never loads two agents for the
+same topic while Tier 3 still counts findings by originating methodology. See
+[sources/symbiosis/README.md](sources/symbiosis/README.md).
 
 Two further sets sit alongside them, both **originally authored** by Daoism
 Systems rather than mirrored.
@@ -90,7 +101,8 @@ a thin concept index that points across, gives a single place to:
 - pick the best lens for a given bug class (pashov for attacker reasoning,
   plamen for multi-language depth, quillshield for cataloged reference)
 - combine lenses (e.g. pashov `math-precision-agent` + quillshield
-  `input-arithmetic-safety` + plamen `overflow-safety` skill)
+  `input-arithmetic-safety` + plamen `overflow-safety` skill, or the
+  pre-combined symbiosis lens for oracle/flash-loan)
 - preserve upstream LICENSE/attribution without copy-paste drift
 
 ## Usage
@@ -142,8 +154,9 @@ solidity-audit-skills/
 │   │   └── LICENSE
 │   ├── plamen/             # MIRROR — PlamenTSV/plamen (agents, skills, rules, prompts)
 │   │   └── LICENSE
-│   ├── quillshield/        # MIRROR — quillai-network/quillshield_skills (10 plugins)
+│   ├── quillshield/        # MIRROR — quillai-network/quillshield_skills (5 plugins)
 │   │   └── LICENSE
+│   ├── symbiosis/          # DERIVED — union-merged skills from the three mirrors
 │   └── omega/              # ORIGINAL — 12-skill methodology by Daoism Systems
 │       ├── README.md
 │       └── ATTRIBUTION.md  # Corpus studied, derivation method, licensing
@@ -155,11 +168,14 @@ solidity-audit-skills/
     └── by-role.md          # Orchestrator, attacker, verifier, synthesizer
 ```
 
-`sources/` is the source of truth, and holds two kinds of directory. The three
-**mirrors** — `pashov/`, `plamen/`, `quillshield/` — are untouched copies of
-the upstream repos (with heavy script directories omitted, see
-[ATTRIBUTIONS.md](ATTRIBUTIONS.md)), each keeping its upstream `LICENSE` in
-place. `omega/` is **original writing** by Daoism Systems and carries no
+`sources/` is the source of truth, and holds three kinds of directory. The
+three **mirrors** — `pashov/`, `plamen/`, `quillshield/` — are copies of the
+upstream repos (with heavy script directories omitted and duplicated skills
+moved out, see [ATTRIBUTIONS.md](ATTRIBUTIONS.md)), each keeping its upstream
+`LICENSE` in place. `symbiosis/` is **derived** from those three mirrors —
+union-merges of the moved-out duplicates — and carries layered copyright
+(content © respective upstreams, merge © Daoism Systems). `omega/` is
+**original writing** by Daoism Systems and carries no
 upstream licence, because it mirrors nothing; its provenance is recorded in
 [sources/omega/ATTRIBUTION.md](sources/omega/ATTRIBUTION.md).
 
@@ -191,6 +207,10 @@ python3 scripts/check_provenance.py   # pinned SHAs consistent with disk
   preserved verbatim at [sources/plamen/LICENSE](sources/plamen/LICENSE).
 - **`sources/quillshield/`:** MIT, © 2025 QuillShield. Notice preserved
   verbatim at [sources/quillshield/LICENSE](sources/quillshield/LICENSE).
+- **`sources/symbiosis/`:** layered MIT — content © the respective upstream
+  contributors above, merge © 2026 Daoism Systems. See
+  [sources/symbiosis/README.md](sources/symbiosis/README.md) and
+  [sources/symbiosis/.provenance](sources/symbiosis/.provenance).
 
 Key MIT obligations when redistributing or extending this library:
 

@@ -17,8 +17,8 @@ Systematically detect **all variants** of reentrancy vulnerabilities by mapping 
 
 ## When NOT to Use
 
-- Pure state variable analysis without external calls (use state-invariant-detection)
-- Access control consistency checking (use semantic-guard-analysis)
+- Pure state variable analysis without external calls (use invariant-conservation in this library's symbiosis collection)
+- Access control consistency checking (use guard-consistency in this library's symbiosis collection)
 - Full multi-dimensional audit (use behavioral-state-analysis, which orchestrates this skill)
 
 ## Core Concept: The CEI Invariant

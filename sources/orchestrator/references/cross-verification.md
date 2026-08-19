@@ -1,6 +1,6 @@
 # Cross-Methodology Verification
 
-Tier 3. Merges the output of four methodology orchestrators into one finding
+Tier 3. Merges the output of five methodology orchestrators into one finding
 set, and decides what the audit actually claims.
 
 ## Why this tier is different from the merges below it
@@ -10,12 +10,13 @@ that **share an author, a framework, a vocabulary and a set of blind spots**:
 
 | Merge | What agreement means there |
 |---|---|
-| pashov, 12 specialists | Expected overlap — remits intersect by design. Weak signal. |
+| pashov, 10 specialists | Expected overlap — remits intersect by design. Weak signal. |
 | omega, 5 generalists | Real evidence — each saw everything independently. |
 | quillshield, topic plugins | Expected overlap — adjacent bug classes touch the same lines. |
 | plamen, language + injectables | Mixed — some remits nest inside others. |
+| symbiosis, merged lenses | Union coverage — one agent per lens, but its findings carry per-constituent tags. |
 
-Across methodologies almost nothing is shared. Four independent teams wrote
+Across methodologies almost nothing is shared. Five independent teams wrote
 them, for different purposes, in different vocabularies, with different
 blind spots. So:
 
@@ -24,19 +25,19 @@ blind spots. So:
 > land on the same defect from opposite directions, it is real.
 
 And the trap, which is the same one every merge in this library warns about but
-sharper here because there are four sources to average away:
+sharper here because there are five sources to average away:
 
 > **A finding raised by one methodology is not weak. It is what that methodology
 > exists for.** pashov exists to find what a structural review misses; omega
 > exists to find what an attacker sweep misses. Preferring corroborated items
-> converges on the intersection of four reviews, which is worse than any one of
+> converges on the intersection of five reviews, which is worse than any one of
 > them alone.
 
 ## Procedure
 
 ### 1. Normalize
 
-Every methodology was told to emit `{bundle}/finding-format.md`. Parse all four
+Every methodology was told to emit `{bundle}/finding-format.md`. Parse all five
 into one table keyed on `(file, function, mechanism)`.
 
 **Key on mechanism, never on title.** The vocabularies differ hardest here — the
@@ -49,13 +50,24 @@ keep them separate and cross-reference.
 
 | Raised by | Treatment |
 |---|---|
-| **3–4 methodologies** | Near-conclusive. Accept. Spend your time on the write-up and on getting severity right, not on re-verifying. |
+| **3–5 methodologies** | Near-conclusive. Accept. Spend your time on the write-up and on getting severity right, not on re-verifying. |
 | **2 methodologies** | Strong. Light verification — confirm the mechanism exists, then accept. |
 | **1 methodology** | Full verification, every one. See §3. |
 
 Count **methodologies, not agents**. Five pashov agents flagging one line is one
 methodology, not five — they share a bundle and a framework. Collapsing agent
 counts into methodology counts is the whole point of this tier.
+
+**Symbiosis lens attribution.** A symbiosis finding is one agent but may carry
+the fingerprints of up to three former methodologies: its `rationale` field
+names the constituent lens (pashov / plamen / quillshield) that produced it.
+Expand each symbiosis finding into per-lens votes when counting — a
+guard-consistency finding tagged [Q] produced by the merged skill counts as one
+quillshield vote, and if its evidence traces to the pashov attacker procedure
+as well, that is a second vote. This preserves the calibration the merge would
+otherwise lose: two genuinely independent traditions reaching the same defect
+through one agent is still real agreement, not a double-count, because the
+traditions never shared an author or a framework.
 
 ### 3. Verify single-methodology findings
 
@@ -116,7 +128,7 @@ they are frequently the highest-severity items in the report.
 
 An area is reported as "checked and found sound" only when **at least two
 methodologies examined it and neither raised anything**. One methodology's
-clearance is one review, not four.
+clearance is one review, not five.
 
 Where only one cleared it, either verify it yourself or leave it out. This is
 the part of the report a reader is least able to check, and the only part where
@@ -133,14 +145,16 @@ Print before writing the report:
 
 ```
 METHODOLOGY      FINDINGS  LEADS  CLEARED  AGENTS(ok/failed)
-pashov                  N      N        N        12/0
+pashov                  N      N        N        10/0
 omega                   N      N        N         5/0
 quillshield             N      N        N         8/1
 plamen                  N      N        N        11/0
+symbiosis               N      N        N         5/0
 
-Raised by 4 methodologies:   N
+Raised by 5 methodologies:   N
+Raised by 4:                 N
 Raised by 3:                 N
-Raised by 2:                 N
+Raised by 2:                 N   (symbiosis lens tags counted per lens)
 Raised by 1:                 N   -> all verified?  yes/no
      promoted:               N
      demoted to lead:        N
@@ -159,7 +173,7 @@ none has been silently dropped — go back and find it.
 suspect the methodologies collapsed onto each other — check whether they really
 ran different agents, or whether one returned little. If over ~70%, suspect one
 methodology is generating noise, or that mechanism-keying is splitting the same
-defect into four. Say which in the engagement record.
+defect into five. Say which in the engagement record.
 
 ## What not to do
 
