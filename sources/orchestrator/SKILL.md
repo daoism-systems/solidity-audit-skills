@@ -1,6 +1,6 @@
 ---
 name: audit-codebase
-description: Autonomous end-to-end security audit of a smart-contract codebase using every relevant skill in this library. Profiles the target, routes to the applicable skills across all four collections (pashov, plamen, quillshield, omega), runs four methodology orchestrators in parallel — each fanning out to its own subagents — then cross-verifies every finding across methodologies and writes the report. Runs start to finish with no human in the loop. Use when given a repository URL or path to audit, when asked to "audit this", "review this codebase", or "run a security review".
+description: Autonomous end-to-end security audit of a smart-contract codebase using every relevant skill in this library. Profiles the target, routes to the applicable skills across all five collections (pashov, plamen, quillshield, omega, symbiosis), runs five methodology orchestrators in parallel — each fanning out to its own subagents — then cross-verifies every finding across methodologies and writes the report. Runs start to finish with no human in the loop. Use when given a repository URL or path to audit, when asked to "audit this", "review this codebase", or "run a security review".
 ---
 
 # Autonomous Codebase Audit
@@ -15,8 +15,8 @@ every adjudication that follows.
 
 ```
 Tier 0  profile the target, build bundles, route            ← you
-Tier 1  four methodology orchestrators, in parallel
-Tier 2  each fans out to its own leaf agents (~30–45 total)
+Tier 1  five methodology orchestrators, in parallel
+Tier 2  each fans out to its own leaf agents (~25–35 total)
 Tier 3  cross-methodology verification, then the report     ← you
 ```
 
@@ -59,7 +59,7 @@ concept.
 ### Step 2: Route
 
 Apply [references/routing-table.md](references/routing-table.md) to the profile.
-It maps each signal to skills across all four collections and yields the
+It maps each signal to skills across all five collections and yields the
 **skill manifest**: every skill that will be loaded, and by which tier-1
 orchestrator.
 
@@ -82,21 +82,22 @@ One shared bundle, so no agent re-derives scope:
 ```
 
 Every agent at every tier writes findings in that one format. Without it the
-Tier 3 merge degrades into re-reading four incompatible reports.
+Tier 3 merge degrades into re-reading five incompatible reports.
 
 ---
 
-## Tier 1 — Dispatch the four methodologies
+## Tier 1 — Dispatch the five methodologies
 
-Spawn all four **in one message**, as parallel background agents. Prompts are in
+Spawn all five **in one message**, as parallel background agents. Prompts are in
 [references/tier1-prompts.md](references/tier1-prompts.md).
 
 | Orchestrator | Fans out to | Character |
 |---|---|---|
-| **pashov** | 12 attacker agents | Adversarial. "How do I extract value from this?" |
+| **pashov** | 10 attacker agents | Adversarial. "How do I extract value from this?" |
 | **omega** | 5 independent generalist passes | Structural. "Can assets leave? Does this guard bind?" |
-| **quillshield** | one agent per relevant topic plugin (~6–10) | Cataloged. Per-bug-class depth with reference packs. |
+| **quillshield** | one agent per relevant topic plugin (~5–8) | Cataloged. Per-bug-class depth with reference packs. |
 | **plamen** | language pack + feature-triggered injectables (~6–12) | Language-native + protocol-type specific. |
+| **symbiosis** | one agent per relevant merged lens (3–5) | Union lenses. Duplicated topics merged from the other collections; every finding carries a constituent-lens tag. |
 
 Each tier-1 orchestrator spawns its own tier-2 agents. That nesting is the
 point: it lets each methodology run as its authors designed it rather than being
@@ -109,13 +110,15 @@ Record which mode ran.
 
 ### Scale
 
-Default is **everything the routing table marks relevant** — typically 30–45
+Default is **everything the routing table marks relevant** — typically 25–35
 leaf agents. Only reduce under an explicit budget constraint, in this order:
 
-1. Drop quillshield plugins whose trigger fired weakly
-2. Drop omega passes E, then D, then C (see that skill's own guidance)
-3. Drop pashov's three gap-hunter agents (10–12)
-4. Never drop below one orchestrator per methodology — cross-methodology
+1. Drop symbiosis lenses whose trigger fired weakly (their constituents'
+   coverage partially survives via the other methodologies)
+2. Drop quillshield plugins whose trigger fired weakly
+3. Drop omega passes E, then D, then C (see that skill's own guidance)
+4. Drop pashov's three gap-hunter agents (8–10)
+5. Never drop below one orchestrator per methodology — cross-methodology
    agreement is the strongest signal Tier 3 has, and it needs at least two
    methodologies to exist at all
 
@@ -135,7 +138,7 @@ down through the tier-1 prompts:
 
 ## Tier 3 — Cross-methodology verification
 
-Wait for all four to report. Do not poll; act on completion notifications. Then
+Wait for all five to report. Do not poll; act on completion notifications. Then
 merge per [references/cross-verification.md](references/cross-verification.md).
 
 The essential point, and the reason this tier exists:
@@ -143,15 +146,18 @@ The essential point, and the reason this tier exists:
 > **Agreement *across* methodologies is the strongest evidence in the system.**
 
 Within a methodology, agents share an author, a framework, a vocabulary and a
-set of blind spots. Across methodologies they share almost nothing — four
+set of blind spots. Across methodologies they share almost nothing — five
 independent teams wrote them for different purposes. So when pashov's economic
 agent and omega's asset-exit lens land on the same defect from opposite
-directions, that is near-conclusive.
+directions, that is near-conclusive. A symbiosis finding tagged with two
+constituent lenses (e.g. plamen + quillshield) counts as two of those
+independent votes — the lens attribution in its `rationale` field preserves the
+calibration even though one agent produced it.
 
 The corollary is the trap: **a finding raised by only one methodology is not
 weak.** It is what that methodology exists for. Most deep findings are found by
 exactly one lens, and an orchestrator that quietly prefers corroborated items
-converges on the intersection of four reviews — worse than any one of them.
+converges on the intersection of five reviews — worse than any one of them.
 
 Cross-verification is also where **contradictions** get resolved. Different
 methodologies will disagree about whether a guard holds or a severity is right.
@@ -185,7 +191,7 @@ on disk.
 - [ ] Built and tested; failures and warnings captured as findings
 - [ ] Routing table applied; skill manifest printed
 - [ ] Bundle built once, shared, includes the common finding format
-- [ ] Four tier-1 orchestrators spawned in one message, in parallel
+- [ ] Five tier-1 orchestrators spawned in one message, in parallel
 - [ ] No orchestrator reduction below one per methodology
 - [ ] Waited for all completions; no polling, no partial merge
 - [ ] Cross-methodology merge run; single-methodology findings not discounted

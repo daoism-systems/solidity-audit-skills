@@ -6,8 +6,66 @@
   "default_branch": "main",
   "fetched": "2026-07-20",
   "last_verified": "2026-08-11",
-  "files_mirrored": 85,
-  "files_byte_identical": 85,
+  "files_mirrored": 60,
+  "files_byte_identical": 51,
+  "known_differences": [
+    {
+      "path": "plugins/oracle-flashloan-analysis/",
+      "reason": "removed - merged into sources/symbiosis/oracle-flashloan-analysis/"
+    },
+    {
+      "path": "plugins/state-invariant-detection/",
+      "reason": "removed - merged into sources/symbiosis/invariant-conservation/"
+    },
+    {
+      "path": "plugins/signature-replay-analysis/",
+      "reason": "removed - merged into sources/symbiosis/signature-replay/"
+    },
+    {
+      "path": "plugins/external-call-safety/",
+      "reason": "removed - merged into sources/symbiosis/external-call-safety/"
+    },
+    {
+      "path": "plugins/semantic-guard-analysis/",
+      "reason": "removed - merged into sources/symbiosis/guard-consistency/"
+    },
+    {
+      "path": "README.md",
+      "reason": "edited - overview and tree 10->5 plugins (5 merged into symbiosis), OWASP table points at the symbiosis equivalents"
+    },
+    {
+      "path": "INSTALL.md",
+      "reason": "edited - manual copy list 10->5 commands, symbiosis note added"
+    },
+    {
+      "path": "install.sh",
+      "reason": "edited - SKILLS list 10->5 (merged plugins removed)"
+    },
+    {
+      "path": ".claude-plugin/marketplace.json",
+      "reason": "edited - plugin list 10->6 (5 merged plugins removed, defender retained)"
+    },
+    {
+      "path": "plugins/behavioral-state-analysis/skills/behavioral-state-analysis/SKILL.md",
+      "reason": "edited - cross-references to merged plugins now name the symbiosis equivalents"
+    },
+    {
+      "path": "plugins/reentrancy-pattern-analysis/skills/reentrancy-pattern-analysis/SKILL.md",
+      "reason": "edited - cross-references to merged plugins now name the symbiosis equivalents"
+    },
+    {
+      "path": "plugins/proxy-upgrade-safety/skills/proxy-upgrade-safety/SKILL.md",
+      "reason": "edited - cross-references to merged plugins now name the symbiosis equivalents"
+    },
+    {
+      "path": "plugins/input-arithmetic-safety/skills/input-arithmetic-safety/SKILL.md",
+      "reason": "edited - cross-references to merged plugins now name the symbiosis equivalents"
+    },
+    {
+      "path": "plugins/dos-griefing-analysis/skills/dos-griefing-analysis/SKILL.md",
+      "reason": "edited - cross-references to merged plugins now name the symbiosis equivalents"
+    }
+  ],
   "license": "MIT, (c) 2025 QuillShield",
   "omitted": [".github/", ".git/"]
 }

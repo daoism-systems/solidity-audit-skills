@@ -28,6 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 MIRROR_REQUIRED = ("name", "upstream", "commit", "commit_date", "fetched", "files_mirrored")
+DERIVED_REQUIRED = ("name", "kind", "upstreams", "files_mirrored", "license", "note")
 
 
 def count_files(d: Path) -> int:
@@ -67,6 +68,51 @@ def main() -> int:
         # Originally-authored directories have no upstream to pin.
         if rec.get("kind") == "original":
             print(f"{rel:<24} original content — no upstream to pin")
+            continue
+
+        # Derived directories merge content from several mirrors; they have no
+        # single upstream to pin, but each named upstream must be a mirror that
+        # exists in this repo, and file counts must still match disk.
+        if rec.get("kind") == "derived":
+            for field in DERIVED_REQUIRED:
+                if not rec.get(field):
+                    errors.append(f"{rel}/.provenance: missing `{field}`")
+            upstreams = rec.get("upstreams") or []
+            for up in upstreams:
+                up_name = up.get("name", "")
+                up_path = ROOT / "sources" / up_name
+                if not up_name or not up_path.is_dir():
+                    errors.append(
+                        f"{rel}/.provenance: upstream `{up_name or '?'}` is not a directory under sources/"
+                    )
+                    continue
+                up_sha = up.get("commit", "")
+                if not SHA_RE.match(up_sha):
+                    errors.append(
+                        f"{rel}/.provenance: upstream `{up_name}` commit is not a full 40-char SHA"
+                    )
+                # The derived collection must be pinned to the same commit each
+                # mirror is currently carrying.
+                up_prov = up_path / ".provenance"
+                if up_prov.is_file():
+                    try:
+                        mirror_rec = json.loads(up_prov.read_text())
+                        if mirror_rec.get("commit") != up_sha:
+                            errors.append(
+                                f"{rel}/.provenance: upstream `{up_name}` pinned at {up_sha[:12]} "
+                                f"but sources/{up_name} carries {str(mirror_rec.get('commit'))[:12]}"
+                            )
+                    except json.JSONDecodeError:
+                        errors.append(
+                            f"{rel}/.provenance: upstream `{up_name}` has an unreadable .provenance"
+                        )
+            on_disk = count_files(src)
+            recorded = rec.get("files_mirrored")
+            if recorded is not None and on_disk != recorded:
+                errors.append(
+                    f"{rel}/.provenance: files_mirrored={recorded} but {on_disk} files on disk"
+                )
+            print(f"{rel:<24} derived from {len(upstreams)} upstream(s)  {on_disk} files")
             continue
 
         for field in MIRROR_REQUIRED:

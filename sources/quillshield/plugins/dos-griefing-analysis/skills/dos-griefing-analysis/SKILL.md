@@ -18,7 +18,7 @@ Detect vulnerabilities that allow attackers to **make contracts unusable** (Deni
 ## When NOT to Use
 
 - Direct fund theft analysis (use behavioral-state-analysis)
-- Access control consistency (use semantic-guard-analysis)
+- Access control consistency (use guard-consistency in this library's symbiosis collection)
 - Reentrancy detection (use reentrancy-pattern-analysis)
 
 ## Seven DoS & Griefing Vulnerability Classes

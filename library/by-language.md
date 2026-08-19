@@ -7,27 +7,30 @@ with multi-language skill packs; pashov and quillshield are EVM-only.
 |---|---|
 | **[P]** pashov | ✗ EVM only (`solidity-auditor`, `x-ray`, `fizz`) |
 | **[L]** plamen | ✓ EVM, Solana, Aptos, Sui, Soroban, DAML, L1 node-client (Go/Rust) |
-| **[Q]** quillshield | ✗ EVM only (all 10 plugins) |
+| **[Q]** quillshield | ✗ EVM only (5 plugins remaining) |
+| **[S]** symbiosis | ✗ EVM only (5 union lenses) |
 
 ---
 
 ## EVM (Solidity / Vyper)
 
-All three sources cover EVM. Pashov and quillshield are EVM-exclusive;
-plamen's EVM tree has 18 skills.
+All sources cover EVM. Pashov and quillshield are EVM-exclusive;
+plamen's EVM tree has 15 skills (oracle-analysis and flash-loan-interaction
+merged into the [S] union lens).
 
 | Source | File | Coverage |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` + `references/hacking-agents/*.md` | ●  12-agent parallel attacker methodology. |
+| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` + `references/hacking-agents/*.md` | ●  10-agent parallel attacker methodology. |
 | **[P]** | `sources/pashov/x-ray/SKILL.md` | ●  Pre-audit x-ray report. |
 | **[P]** | `sources/pashov/fizz/SKILL.md` | ●  Echidna + Medusa fuzz suite generation. |
-| **[L]** | `sources/plamen/rules/skill-index.md` (EVM section) | ●  18 EVM skills (FLASH_LOAN_INTERACTION, ORACLE_ANALYSIS, TOKEN_FLOW_TRACING, ZERO_STATE_RETURN, STAKING_RECEIPT_TOKENS, EVENT_CORRECTNESS, SEMI_TRUSTED_ROLES, MIGRATION_ANALYSIS, CROSS_CHAIN_TIMING, TEMPORAL_PARAMETER_STALENESS, CENTRALIZATION_RISK, SHARE_ALLOCATION_FAIRNESS, FORK_ANCESTRY, ECONOMIC_DESIGN_AUDIT, EXTERNAL_PRECONDITION_AUDIT, VERIFICATION_PROTOCOL, STORAGE_LAYOUT_SAFETY, CROSS_CHAIN_MESSAGE_INTEGRITY). |
+| **[L]** | `sources/plamen/rules/skill-index.md` (EVM section) | ●  15 EVM skills (TOKEN_FLOW_TRACING, ZERO_STATE_RETURN, STAKING_RECEIPT_TOKENS, EVENT_CORRECTNESS, SEMI_TRUSTED_ROLES, MIGRATION_ANALYSIS, CROSS_CHAIN_TIMING, TEMPORAL_PARAMETER_STALENESS, CENTRALIZATION_RISK, SHARE_ALLOCATION_FAIRNESS, FORK_ANCESTRY, ECONOMIC_DESIGN_AUDIT, EXTERNAL_PRECONDITION_AUDIT, VERIFICATION_PROTOCOL, STORAGE_LAYOUT_SAFETY, CROSS_CHAIN_MESSAGE_INTEGRITY). |
 | **[L]** | `sources/plamen/agents/depth-*.md` | ●  EVM-compatible depth agents. |
-| **[Q]** | All 10 plugins under `sources/quillshield/plugins/*/skills/*/SKILL.md` | ●  Topic-focused reference catalogs. |
+| **[Q]** | The 5 remaining plugins under `sources/quillshield/plugins/*/skills/*/SKILL.md` | ●  Topic-focused reference catalogs. |
+| **[S]** | `sources/symbiosis/*/SKILL.md` | ●  5 union lenses (oracle/flash-loan, invariants, signatures, external calls, guards) merging the topics pashov/plamen/quillshield covered in overlapping form. |
 
 **Recommended combo for an EVM audit:** [P] `x-ray` → [P] `solidity-auditor`
-orchestrator with all 12 hacking agents → [Q] topic plugins as
-reference → [L] depth agents + `security-verifier` for PoCs.
+orchestrator with all 10 hacking agents → [Q] topic plugins + [S] union
+lenses as reference → [L] depth agents + `security-verifier` for PoCs.
 
 ---
 
