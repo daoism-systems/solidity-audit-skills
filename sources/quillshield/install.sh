@@ -9,14 +9,9 @@ PLUGINS_DIR="$SCRIPT_DIR/plugins"
 
 SKILLS=(
   "behavioral-state-analysis"
-  "semantic-guard-analysis"
-  "state-invariant-detection"
   "reentrancy-pattern-analysis"
-  "oracle-flashloan-analysis"
   "proxy-upgrade-safety"
   "input-arithmetic-safety"
-  "external-call-safety"
-  "signature-replay-analysis"
   "dos-griefing-analysis"
 )
 

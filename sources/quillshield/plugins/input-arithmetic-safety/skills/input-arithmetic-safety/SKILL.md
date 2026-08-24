@@ -17,7 +17,7 @@ Detect **input validation failures** (the #1 direct exploitation cause at 34.6% 
 
 ## When NOT to Use
 
-- Access control analysis (use semantic-guard-analysis)
+- Access control analysis (use guard-consistency in this library's symbiosis collection)
 - Reentrancy detection (use reentrancy-pattern-analysis)
 - Full multi-dimensional audit (use behavioral-state-analysis)
 

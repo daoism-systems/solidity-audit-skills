@@ -13,45 +13,44 @@ the report.
 
 | Source | File | Style |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` | 4-turn orchestrator: Discover → Prepare bundles → Spawn 12 parallel attackers → Dedup & report. Banner-printing, hard-gate dedup with completeness/failure gates. |
+| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` | 4-turn orchestrator: Discover → Prepare bundles → Spawn 10 parallel attackers → Dedup & report. Banner-printing, hard-gate dedup with completeness/failure gates. |
 | **[P]** | `sources/pashov/x-ray/SKILL.md` | 3-step pre-audit orchestrator: Enumerate → Read sources & synthesize invariants → Write report files. |
 | **[P]** | `sources/pashov/fizz/SKILL.md` | 11-step fuzz-suite orchestrator with guided/automatic modes and per-cycle coverage gates. |
 | **[L]** | `sources/plamen/CLAUDE.md` + `sources/plamen/rules/orchestrator-rules.md` | Phased pipeline: recon → breadth → rescan → depth → chain → verify → skeptic → report. Haltless by design — malformed phases auto-recover. |
 | **[L]** | `sources/plamen/skills/audit-prep/SKILL.md` | 8-phase readiness orchestrator. |
 | **[Q]** | `sources/quillshield/plugins/behavioral-state-analysis/skills/behavioral-state-analysis/SKILL.md` | BSA orchestrator: intent extraction → threat engines → adversarial simulation → Bayesian scoring. |
-| **[O]** | `sources/omega/omega-audit-workflow/SKILL.md` | Engagement-level orchestration. Phase 3 fans out to two **independent generalist** review subagents (bottom-up from state, top-down from entry points), each applying all seven lenses to the full scope, plus a regression pass on repeat engagements — then reconciles. Contrast with **[P]** `solidity-auditor`, which fans out to 12 *specialists*: there, agreement is expected overlap; here, agreement between two generalists who both saw everything is real evidence. |
+| **[O]** | `sources/omega/omega-audit-workflow/SKILL.md` | Engagement-level orchestration. Phase 3 fans out to two **independent generalist** review subagents (bottom-up from state, top-down from entry points), each applying all seven lenses to the full scope, plus a regression pass on repeat engagements — then reconciles. Contrast with **[P]** `solidity-auditor`, which fans out to 10 *specialists*: there, agreement is expected overlap; here, agreement between two generalists who both saw everything is real evidence. |
 
 ---
 
 ## Attacker (breadth)
 
-Hunts for vulnerabilities. Pashov's 12-agent fan-out is the strongest
+Hunts for vulnerabilities. Pashov's 10-agent fan-out is the strongest
 attacker-mindset collection; plamen's depth agents take a more systematic
-verification angle.
+verification angle. Topics where two collections shipped overlapping hunters
+are covered once by a **[S]** symbiosis union lens.
 
 | Source | File | Specialty |
 |---|---|---|
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/math-precision-agent.md` | Math / precision / scale mixing. |
-| **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/access-control-agent.md` | Permission models. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/economic-security-agent.md` | External deps / value flows / MEV. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/execution-trace-agent.md` | Execution flow within/across transactions. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/invariant-agent.md` | Conservation laws / state couplings. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/periphery-agent.md` | Libraries / helpers / encoders. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/first-principles-agent.md` | Implicit assumptions. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/asymmetry-agent.md` | Paired-function asymmetries. |
-| **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/boundary-agent.md` | Per-call-site corner cases. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/numerical-gap-agent.md` | Seam: precision × invariant × boundary. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/trust-gap-agent.md` | Seam: access × economics × asymmetry. |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/flow-gap-agent.md` | Seam: execution × periphery × first-principles. |
 | **[Q]** | `sources/quillshield/plugins/reentrancy-pattern-analysis/skills/reentrancy-pattern-analysis/SKILL.md` | Reentrancy hunter. |
-| **[Q]** | `sources/quillshield/plugins/oracle-flashloan-analysis/skills/oracle-flashloan-analysis/SKILL.md` | Oracle / flash-loan hunter. |
 | **[Q]** | `sources/quillshield/plugins/input-arithmetic-safety/skills/input-arithmetic-safety/SKILL.md` | Input / arithmetic hunter. |
-| **[Q]** | `sources/quillshield/plugins/external-call-safety/skills/external-call-safety/SKILL.md` | External-call / weird-ERC20 hunter. |
-| **[Q]** | `sources/quillshield/plugins/state-invariant-detection/skills/state-invariant-detection/SKILL.md` | Invariant-violation hunter. |
-| **[Q]** | `sources/quillshield/plugins/semantic-guard-analysis/skills/semantic-guard-analysis/SKILL.md` | Inconsistent-guard hunter. |
 | **[Q]** | `sources/quillshield/plugins/proxy-upgrade-safety/skills/proxy-upgrade-safety/SKILL.md` | Proxy / upgrade hunter. |
-| **[Q]** | `sources/quillshield/plugins/signature-replay-analysis/skills/signature-replay-analysis/SKILL.md` | Signature / replay hunter. |
 | **[Q]** | `sources/quillshield/plugins/dos-griefing-analysis/skills/dos-griefing-analysis/SKILL.md` | DoS / griefing hunter. |
+| **[S]** | `sources/symbiosis/oracle-flashloan-analysis/SKILL.md` | Oracle / flash-loan hunter — union of [L] oracle + flash-loan and [Q] oracle-flashloan. |
+| **[S]** | `sources/symbiosis/external-call-safety/SKILL.md` | External-call / weird-ERC20 hunter — union of [P] boundary-agent and [Q] external-call-safety. |
+| **[S]** | `sources/symbiosis/invariant-conservation/SKILL.md` | Invariant-violation hunter — union of [L] depth-state-trace and [Q] state-invariant-detection. |
+| **[S]** | `sources/symbiosis/guard-consistency/SKILL.md` | Inconsistent-guard / permission hunter — union of [P] access-control-agent and [Q] semantic-guard-analysis. |
+| **[S]** | `sources/symbiosis/signature-replay/SKILL.md` | Signature / replay hunter — union of [L] signature-verification-audit and [Q] signature-replay-analysis. |
 
 ---
 
@@ -64,12 +63,12 @@ systematic analysis. Plamen's depth agents have the strongest
 | Source | File | Specialty |
 |---|---|---|
 | **[L]** | `sources/plamen/agents/depth-edge-case.md` | Edge cases / boundaries / zero-state / dust. Mandatory always-on boundary checklist. |
-| **[L]** | `sources/plamen/agents/depth-state-trace.md` | Cross-function state mutation / constraint enforcement / cache lifecycle set-cover. |
+| **[L]** | `sources/plamen/agents/depth-state-trace.md` | Cross-function state mutation / constraint enforcement / cache lifecycle set-cover. EVM dispatch superseded by the [S] `invariant-conservation` union lens; kept for plamen-internal pipeline use. |
 | **[L]** | `sources/plamen/agents/depth-token-flow.md` | Token entry/exit / donation attacks / approval collisions / type separation. |
 | **[L]** | `sources/plamen/agents/depth-external.md` | External call side effects / cross-chain timing / MEV / governance parameter changes. |
 | **[L]** | `sources/plamen/agents/depth-consensus-invariant.md` | L1 consensus safety / liveness / Byzantine-scenario reasoning. |
 | **[L]** | `sources/plamen/agents/depth-network-surface.md` | L1 p2p / RPC / mempool / pre-auth panic paths / asymmetric cost. |
-| **[L]** | `sources/plamen/agents/skills/niche/signature-verification-audit/SKILL.md` | Standalone depth agent for signatures. |
+| **[S]** | `sources/symbiosis/signature-replay/SKILL.md` | Standalone depth lens for signatures — union of the [L] niche agent (kept for non-EVM languages) and [Q] signature-replay-analysis. |
 | **[L]** | `sources/plamen/agents/skills/niche/semantic-gap-investigator/SKILL.md` | Standalone depth agent for SYNC_GAP / ACCUMULATION_EXPOSURE / CONDITIONAL / CLUSTER_GAP flags. |
 | **[L]** | `sources/plamen/agents/skills/niche/semantic-consistency-audit/SKILL.md` | Standalone depth agent for cross-contract config/formula drift. |
 | **[L]** | `sources/plamen/agents/skills/niche/spec-compliance-audit/SKILL.md` | Standalone depth agent for doc-vs-code compliance. |

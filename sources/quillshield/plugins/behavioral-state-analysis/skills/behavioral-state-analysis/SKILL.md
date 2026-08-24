@@ -18,7 +18,7 @@ Audit smart contracts by extracting behavioral intent, then systematically break
 
 - Pure context building (use audit-context-building)
 - Entry point identification only (use entry-point-analyzer)
-- Single-dimension only (use semantic-guard-analysis or state-invariant-detection)
+- Single-dimension only (use guard-consistency or invariant-conservation in this library's symbiosis collection)
 
 ## Token Budget Rules
 

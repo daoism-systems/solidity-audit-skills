@@ -6,12 +6,13 @@
 
 ## EVM Skills (`~/.claude/agents/skills/evm/`)
 
-> Load these when `LANGUAGE=evm`. All 18 skills use EVM/Solidity concepts.
+> Load these when `LANGUAGE=evm`. 15 skills live here; the ORACLE_ANALYSIS and
+> FLASH_LOAN_INTERACTION lenses were merged into this library's symbiosis
+> collection (`sources/symbiosis/oracle-flashloan-analysis/`) and dispatch
+> from there — load that skill when the ORACLE or FLASH_LOAN flag fires.
 
 | Skill | Trigger Pattern | Used By |
 |-------|-----------------|---------|
-| FLASH_LOAN_INTERACTION | FLASH_LOAN or FLASH_LOAN_EXTERNAL flag | breadth agents, depth-token-flow, depth-edge-case |
-| ORACLE_ANALYSIS | ORACLE flag | breadth agents, depth-external, depth-edge-case |
 | TOKEN_FLOW_TRACING | BALANCE_DEPENDENT flag | depth-token-flow, breadth agents |
 | ZERO_STATE_RETURN | ERC4626/first-depositor | depth-edge-case |
 | STAKING_RECEIPT_TOKENS | Receipt token detected | breadth agents, depth-token-flow |
@@ -28,6 +29,7 @@
 | VERIFICATION_PROTOCOL | Always (verifiers) | security-verifier |
 | STORAGE_LAYOUT_SAFETY | STORAGE_LAYOUT flag (proxy/upgradeable/diamond/delegatecall/sstore/sload/assembly) | depth-state-trace, depth-edge-case |
 | CROSS_CHAIN_MESSAGE_INTEGRITY | CROSS_CHAIN_MSG flag (lzReceive/ccipReceive/receiveWormholeMessages/setPeer/setTrustedRemote) | breadth agents, depth-external |
+| SYMBIOSIS oracle-flashloan-analysis | ORACLE flag or FLASH_LOAN flag | breadth agents, depth-external, depth-edge-case (merged lens — `sources/symbiosis/oracle-flashloan-analysis/SKILL.md`) |
 
 ## Solana Skills (`~/.claude/agents/skills/solana/`)
 
@@ -198,7 +200,7 @@
 | EVENT_COMPLETENESS | `MISSING_EVENT` | 1 slot | Event emission coverage, parameter accuracy, cross-component event gaps |
 | SEMANTIC_GAP_INVESTIGATOR | `sync_gaps >= 1` OR `accumulation_exposures >= 1` OR `conditional_writes >= 1` OR `cluster_gaps >= 1` (from Phase 4a.5) | 1 slot | Investigates SYNC_GAP, ACCUMULATION_EXPOSURE, CONDITIONAL, and CLUSTER_GAP flags from semantic invariants to conclusion |
 | SPEC_COMPLIANCE_AUDIT | `HAS_DOCS` flag (non-empty DOCS_PATH with testable claims). **DAML**: `HAS_DOCS` — emit a finding ONLY when a doc mismatch is exploitable; demote pure doc mismatch to Informational. | 1 slot | Spec-to-code compliance: extracts doc claims, verifies against code, reports mismatches |
-| SIGNATURE_VERIFICATION_AUDIT | `HAS_SIGNATURES` flag (ecrecover/ECDSA.recover/permit/EIP712/domainSeparator/nonces/isValidSignature) | 1 slot | Signature replay, malleability, EIP-712 domain, permit front-run, nonce management, cross-chain replay |
+| SIGNATURE_VERIFICATION_AUDIT | `HAS_SIGNATURES` flag (ecrecover/ECDSA.recover/permit/EIP712/domainSeparator/nonces/isValidSignature) | 1 slot | Signature replay, malleability, EIP-712 domain, permit front-run, nonce management, cross-chain replay. **In this library**: EVM runs are dispatched via the symbiosis merge `sources/symbiosis/signature-replay/SKILL.md`; the plamen niche agent definition remains authoritative for non-EVM languages |
 | SEMANTIC_CONSISTENCY_AUDIT | `HAS_MULTI_CONTRACT` flag (2+ in-scope contracts sharing parameters or formulas) | 1 slot | Config variable unit mismatches, formula semantic drift, magic number consistency across contracts |
 | MULTI_STEP_OPERATION_SAFETY | `MULTI_STEP_OPS` flag (approve/delegate/authorize patterns + on-behalf-of functions: depositFor/stakeFor/delegateTo/mintFor/withdrawFor). **DAML**: re-scoped to `PROPOSE_ACCEPT` — propose template + accept choice; flag accept re-reading mutable state the proposer signed against, propose acceptable under different terms, non-revocable propose. | 1 slot | Authorization sequence conflicts in batch/multi-step operations, infrastructure address targeting via public on-behalf-of functions |
 | CALLBACK_RECEIVER_SAFETY | `OUTCOME_CALLBACK` flag (onERC721Received/onERC1155Received/tokensReceived/onTransferReceived/onFlashLoan/executeOperation/receive()/fallback()) | 1 slot | (EVM only) Callback handler access control, permissionless state inflation via callbacks, selective revert exploitation |

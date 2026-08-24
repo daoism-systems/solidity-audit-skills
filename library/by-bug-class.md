@@ -12,15 +12,14 @@ the agent with `@`.
 
 | Source | File | Coverage |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/access-control-agent.md` | ●  Attacker-mindset methodology for permission models. Map every role, find inconsistent guards, hijack initialization, escalate privileges. |
+| **[S]** | `sources/symbiosis/guard-consistency/SKILL.md` | ●  Union of [P] attacker-mindset methodology for permission models (map every role, find inconsistent guards, hijack initialization, escalate privileges) and [Q] automatic detection of inconsistent modifiers via the "Consistency Principle". |
 | **[L]** | `sources/plamen/agents/skills/soroban/auth-validation/SKILL.md` | ●  Soroban-specific auth verification. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/semi-trusted-roles/SKILL.md` | ●  Per-language treatment of semi-trusted roles. |
-| **[Q]** | `sources/quillshield/plugins/semantic-guard-analysis/skills/semantic-guard-analysis/SKILL.md` | ●  Detect inconsistent modifiers automatically via the "Consistency Principle". |
 | **[O]** | `sources/omega/omega-enforceability-check/SKILL.md` | ●  Guards that exist but bind nobody: the constrained party controls the constraint, a second address defeats it, the validator's result is discarded, the flag has no reader. |
 | **[O]** | `sources/omega/omega-transfer-restriction-hooks/SKILL.md` | ●  Permissioned-token gating: which parties a whitelist/blacklist/sanctions hook actually covers, sentinel addresses that disable mint and burn, restrictions that seize assets by blocking the exit, and round-trip bypasses. |
 
-**Recommended combo:** [Q] for detection → [P] for attacker framing → [L] for
-language-specific idioms.
+**Recommended combo:** [S] `guard-consistency` carries both [Q] detection and
+[P] attacker framing in one lens → [L] for language-specific idioms.
 
 ---
 
@@ -46,15 +45,15 @@ edge cases (Soroban i128, Sui bit-shift).
 
 | Source | File | Coverage |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/boundary-agent.md` | ●  8 corner cases per external call site (no code, non-standard token, zero/max input, return-value handling, sentinel, false-returning ERC20, ERC165 dispatch, ERC721 hook re-entry). |
+| **[S]** | `sources/symbiosis/external-call-safety/SKILL.md` | ●  Union of [P] boundary-agent (8 corner cases per external call site: no code, non-standard token, zero/max input, return-value handling, sentinel, false-returning ERC20, ERC165 dispatch, ERC721 hook re-entry) and [Q] external-call-safety (weird-ERC20 catalog). |
 | **[L]** | `sources/plamen/agents/depth-edge-case.md` | ●  Mandatory "always-on boundary checklist" over `{0, 1, max, boundary-1, boundary, boundary+1, empty-container}`. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/zero-state-return/SKILL.md` | ●  Initial zero state + return-to-zero state. |
 | **[Q]** | `sources/quillshield/plugins/input-arithmetic-safety/skills/input-arithmetic-safety/SKILL.md` | ◐  ERC4626 inflation subset. |
 | **[O]** | `sources/omega/omega-time-indexed-state/SKILL.md` | ●  Checkpoints, snapshots, epochs and delegation: append-vs-overwrite, historical reads that return a value true at no point in time, bounded history weaponized into permanent lockout, and discretized rewards that pay for capital the protocol does not hold. |
 
 **Recommended combo:** [L] `depth-edge-case` for systematic enumeration →
-[P] `boundary-agent` for per-call-site 8-corner-case checklist → [L]
-`zero-state-return` for vault share inflation.
+[S] `external-call-safety` for the per-call-site 8-corner-case checklist →
+[L] `zero-state-return` for vault share inflation.
 
 ---
 
@@ -62,12 +61,12 @@ edge cases (Soroban i128, Sui bit-shift).
 
 | Source | File | Coverage |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/boundary-agent.md` | ◐  ERC721 hook re-entry is corner case #8. |
+| **[S]** | `sources/symbiosis/external-call-safety/SKILL.md` | ◐  ERC721 hook re-entry is boundary corner case #8 ([P] lens). |
 | **[L]** | `sources/plamen/agents/skills/aptos/reentrancy-analysis/SKILL.md` | ◐  Aptos Move-specific only. |
 | **[Q]** | `sources/quillshield/plugins/reentrancy-pattern-analysis/skills/reentrancy-pattern-analysis/SKILL.md` | ●  All 4 variants (classic, cross-function, cross-contract, read-only) + ERC-777/ERC-1155 callback reentrancy. |
 
-**Recommended combo:** [Q] is the primary source. [P] `boundary-agent` for
-ERC721 hook specifics.
+**Recommended combo:** [Q] is the primary source. [S]
+`external-call-safety` ([P] lens) for ERC721 hook specifics.
 
 ---
 
@@ -77,13 +76,14 @@ ERC721 hook specifics.
 |---|---|---|
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/economic-security-agent.md` | ◐  Flash-loan-attacker framing, "extract value atomically". |
 | **[L]** | `sources/plamen/agents/skills/sui/oracle-analysis/SKILL.md` | ●  Sui oracle patterns. |
-| **[L]** | `sources/plamen/agents/skills/<lang>/flash-loan-interaction/SKILL.md` | ●  Per-language flash-loan interaction. |
-| **[Q]** | `sources/quillshield/plugins/oracle-flashloan-analysis/skills/oracle-flashloan-analysis/SKILL.md` | ●  Oracle trust-model taxonomy (Chainlink, TWAP, spot, Band, custom). 5 stale-price risks. |
+| **[L]** | `sources/plamen/agents/skills/<lang>/flash-loan-interaction/SKILL.md` | ●  Per-language flash-loan interaction (non-EVM languages; EVM variant merged into [S]). |
+| **[S]** | `sources/symbiosis/oracle-flashloan-analysis/SKILL.md` | ●  Union of [L] oracle-analysis + flash-loan-interaction (EVM) and [Q] oracle trust-model taxonomy (Chainlink, TWAP, spot, Band, custom), 5 stale-price risks. |
 | **[O]** | `sources/omega/omega-external-data-trust/SKILL.md` | ●  Integration failures with an *honest* oracle: staleness measured on the wrong timestamp, uncorrelated feeds, responses not checked against the constraints requested. |
 
-**Recommended combo:** [Q] for oracle classification → [P]
+**Recommended combo:** [S] `oracle-flashloan-analysis` for oracle
+classification + EVM flash-loan patterns → [P]
 `economic-security` for flash-loan attacker framing → [L]
-`flash-loan-interaction` for language-specific patterns.
+`flash-loan-interaction` for non-EVM language specifics.
 
 ---
 
@@ -91,17 +91,16 @@ ERC721 hook specifics.
 
 | Source | File | Coverage |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/boundary-agent.md` | ●  Corner cases #2 (non-standard token), #5 (sentinel-placeholder), #6 (false-returning ERC20). |
+| **[S]** | `sources/symbiosis/external-call-safety/SKILL.md` | ●  Union of [P] boundary-agent corner cases #2 (non-standard token), #5 (sentinel-placeholder), #6 (false-returning ERC20) and the [Q] "weird ERC20" catalog (fee-on-transfer, rebasing, USDT void return, ERC-777). |
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/periphery-agent.md` | ●  Periphery contract bugs (libraries, encoders, helpers). |
 | **[L]** | `sources/plamen/agents/depth-external.md` | ●  External call side effects, cross-chain timing, MEV vectors. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/external-precondition-audit/SKILL.md` | ●  Per-language external precondition audit. |
-| **[Q]** | `sources/quillshield/plugins/external-call-safety/skills/external-call-safety/SKILL.md` | ●  Cataloged "weird ERC20" reference (fee-on-transfer, rebasing, USDT void return, ERC-777). |
 | **[O]** | `sources/omega/omega-asset-exit-paths/SKILL.md` | ◐  One non-standard, paused or malicious token in a list blocking an entire batch claim or redemption. |
 | **[O]** | `sources/omega/omega-standard-conformance/SKILL.md` | ●  The other direction — being a standard-compliant token rather than consuming one. Return-value vs revert semantics, receiver callbacks that revert against compliant recipients, `_mint` vs `_safeMint`, uninitialized domain separators in forked crypto. |
 
-**Recommended combo:** [Q] for "weird ERC20" catalog → [L] `depth-external`
-for MEV and cross-chain timing → [P] `boundary-agent` for per-call
-corner cases.
+**Recommended combo:** [S] `external-call-safety` for the "weird ERC20"
+catalog + per-call corner cases → [L] `depth-external`
+for MEV and cross-chain timing.
 
 ---
 
@@ -109,12 +108,12 @@ corner cases.
 
 | Source | File | Coverage |
 |---|---|---|
-| **[P]** | (incidental only — covered inside `first-principles-agent.md` and `boundary-agent.md`) | ◐ |
-| **[L]** | `sources/plamen/agents/skills/niche/signature-verification-audit/SKILL.md` | ●  Cross-language signature replay, malleability, EIP-712, permit, nonce management. |
-| **[Q]** | `sources/quillshield/plugins/signature-replay-analysis/skills/signature-replay-analysis/SKILL.md` | ●  5 replay types, ecrecover edge cases, ERC-1271 contract wallets, permit/permit2. |
+| **[P]** | (incidental only — covered inside `first-principles-agent.md`) | ◐ |
+| **[S]** | `sources/symbiosis/signature-replay/SKILL.md` | ●  Union of [L] cross-language methodology (replay, malleability, EIP-712, permit, nonce management; non-EVM languages keep the plamen originals) and [Q] 5 replay types, ecrecover edge cases, ERC-1271 contract wallets, permit/permit2. |
 
-**Recommended combo:** [Q] for catalog + prevalence stats → [L] for
-language-agnostic methodology.
+**Recommended combo:** [S] `signature-replay` carries both lenses — [Q]
+catalog + prevalence stats and the [L] language-agnostic methodology in one
+place.
 
 ---
 
@@ -122,7 +121,7 @@ language-agnostic methodology.
 
 | Source | File | Coverage |
 |---|---|---|
-| **[P]** | (incidental only — covered inside `access-control-agent.md`) | ◐ |
+| **[P]** | (incidental only — covered inside the [S] `guard-consistency` union, [P] lens) | ◐ |
 | **[L]** | `sources/plamen/agents/skills/soroban/contract-upgradeability/SKILL.md` | ●  Soroban `update_current_contract_wasm`. |
 | **[L]** | `sources/plamen/agents/skills/sui/package-version-safety/SKILL.md` | ●  Sui package upgrades. |
 | **[L]** | `sources/plamen/agents/skills/injectable/l1/hardfork-activation-and-protocol-upgrade/SKILL.md` | ●  L1 hardfork activation. |
@@ -154,15 +153,15 @@ node-client DoS.
 | Source | File | Coverage |
 |---|---|---|
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/invariant-agent.md` | ●  Attacker view: find the path that violates the invariant and extract value. |
-| **[L]** | `sources/plamen/agents/depth-state-trace.md` | ●  Cross-function state mutation tracing, constraint enforcement verification. |
+| **[L]** | `sources/plamen/agents/depth-state-trace.md` | ◐  Cross-function state mutation tracing, constraint enforcement verification (EVM dispatch superseded by [S]). |
 | **[L]** | `sources/plamen/agents/depth-consensus-invariant.md` | ●  L1 consensus invariants (Byzantine-scenario reasoning). |
 | **[L]** | `sources/plamen/agents/skills/niche/semantic-gap-investigator/SKILL.md` | ●  SYNC_GAP / ACCUMULATION_EXPOSURE / CONDITIONAL / CLUSTER_GAP flags. |
-| **[Q]** | `sources/quillshield/plugins/state-invariant-detection/skills/state-invariant-detection/SKILL.md` | ●  Explicit taxonomy: sum / conservation / ratio / monotonic / synchronization. |
+| **[S]** | `sources/symbiosis/invariant-conservation/SKILL.md` | ●  Union of [L] depth-state-trace set-cover methodology and [Q] explicit taxonomy: sum / conservation / ratio / monotonic / synchronization. |
 | **[O]** | `sources/omega/omega-accounting-consistency/SKILL.md` | ●  Counters updated on some transitions but not all, `=` vs `+=`, double counting when the callee already aggregated, reversal paths that skip the total. |
 | **[O]** | `sources/omega/omega-time-indexed-state/SKILL.md` | ●  Checkpoints, snapshots, epochs and delegation: append-vs-overwrite, historical reads that return a value true at no point in time, bounded history weaponized into permanent lockout, and discretized rewards that pay for capital the protocol does not hold. |
 
-**Recommended combo:** [Q] for invariant taxonomy → [L]
-`depth-state-trace` for systematic enforcement verification → [P]
+**Recommended combo:** [S] `invariant-conservation` for taxonomy +
+enforcement verification in one place → [P]
 `invariant-agent` for attacker framing.
 
 ---
@@ -193,7 +192,7 @@ node-client DoS.
 | **[P]** | `sources/pashov/solidity-auditor/references/hacking-agents/trust-gap-agent.md` | ●  access × economics × asymmetry seam. |
 | **[L]** | `sources/plamen/agents/skills/<lang>/economic-design-audit/SKILL.md` | ●  Per-language economic design. |
 | **[L]** | `sources/plamen/agents/depth-external.md` §3 | ●  MEV vector analysis, multi-block arbitrage windows. |
-| **[Q]** | `sources/quillshield/plugins/oracle-flashloan-analysis/skills/oracle-flashloan-analysis/SKILL.md` | ◐  Folded into oracle-flashloan. |
+| **[S]** | `sources/symbiosis/oracle-flashloan-analysis/SKILL.md` | ◐  Folded into oracle-flashloan. |
 | **[O]** | `sources/omega/omega-ordering-and-approval-races/SKILL.md` | ●  Six recurring ordering shapes, including dilution into a buyout premium and arbitrage capture of a payout. |
 
 **Recommended combo:** [P] `economic-security` for attacker framing → [P]
@@ -210,10 +209,11 @@ node-client DoS.
 | **[L]** | `sources/plamen/agents/skills/niche/semantic-consistency-audit/SKILL.md` | ●  Cross-contract config drift, formula semantic drift, magic-number consistency. |
 | **[L]** | `sources/plamen/agents/skills/niche/spec-compliance-audit/SKILL.md` | ●  Doc-vs-code compliance. |
 | **[L]** | `sources/plamen/agents/skills/niche/event-completeness/SKILL.md` | ●  Event emission coverage and parameter accuracy. |
-| **[Q]** | `sources/quillshield/plugins/semantic-guard-analysis/skills/semantic-guard-analysis/SKILL.md` | ●  Detect functions that bypass the contract's own guards. |
+| **[S]** | `sources/symbiosis/guard-consistency/SKILL.md` | ●  Union of [Q] semantic-guard-analysis (detect functions that bypass the contract's own guards via the Consistency Principle) and [P] access-control methodology (role mapping, inconsistent guards, initialization hijack, privilege escalation). |
 | **[O]** | `sources/omega/omega-enforceability-check/SKILL.md` | ●  Complements guard-consistency detection: finds guards that are *present and inert* rather than missing. |
 
-**Recommended combo:** [Q] for single-contract detection → [P] `asymmetry`
+**Recommended combo:** [S] `guard-consistency` for single-contract detection
+with the [P] access-control lens → [P] `asymmetry`
 for paired-function bugs → [L] niche agents for cross-contract drift.
 
 ---

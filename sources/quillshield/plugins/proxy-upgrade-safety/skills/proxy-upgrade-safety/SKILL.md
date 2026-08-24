@@ -19,7 +19,7 @@ Detect vulnerabilities specific to **upgradeable proxy architectures** — the m
 
 - Non-upgradeable contracts without proxy patterns
 - Pure logic audits without proxy architecture (use behavioral-state-analysis)
-- Token standard compliance (use external-call-safety)
+- Token standard compliance (use external-call-safety in this library's symbiosis collection)
 
 ## Core Concept: The Delegatecall Storage Model
 

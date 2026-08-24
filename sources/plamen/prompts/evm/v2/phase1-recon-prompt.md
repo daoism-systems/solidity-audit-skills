@@ -466,8 +466,7 @@ Available templates (in ~/.claude/agents/skills/):
 - TEMPORAL_PARAMETER_STALENESS - for cached parameters in multi-step operations
 - EVENT_CORRECTNESS - for protocols with >15 events (optional, verify emit parameter accuracy)
 - SHARE_ALLOCATION_FAIRNESS - for share/token allocation fairness, late-entry attacks, queue gaming
-- FLASH_LOAN_INTERACTION - for flash loan attack modeling, atomic sequence analysis
-- ORACLE_ANALYSIS - for oracle staleness, decimals, TWAP, failure modes
+- SYMBIOSIS oracle-flashloan-analysis - merged lens for flash loan attack modeling + oracle staleness, decimals, TWAP, failure modes (in this library: `sources/symbiosis/oracle-flashloan-analysis/SKILL.md`)
 - ECONOMIC_DESIGN_AUDIT - for monetary parameter analysis, rate/emission sustainability
 - EXTERNAL_PRECONDITION_AUDIT - for external contract interface-level precondition inference
 - VERIFICATION_PROTOCOL - always used by verifiers
@@ -494,9 +493,7 @@ After listing all recommended templates, output this binding manifest:
 | TEMPORAL_PARAMETER_STALENESS | TEMPORAL flag | {YES/NO} | {if YES: multi-step ops with cached params} |
 | EVENT_CORRECTNESS | >15 events in event_definitions.md | {YES/NO} | {if YES: event count} |
 | SHARE_ALLOCATION_FAIRNESS | SHARE_ALLOCATION flag | {YES/NO} | {if YES: share/allocation pattern found} |
-| FLASH_LOAN_INTERACTION | FLASH_LOAN flag | {YES/NO} | {if YES: flash loan patterns found} |
-| FLASH_LOAN_INTERACTION | FLASH_LOAN_EXTERNAL flag | {YES/NO} | {if YES: external DEX/pool/vault interactions detected} |
-| ORACLE_ANALYSIS | ORACLE flag | {YES/NO} | {if YES: oracle patterns found} |
+| SYMBIOSIS oracle-flashloan-analysis | FLASH_LOAN or FLASH_LOAN_EXTERNAL or ORACLE flag | {YES/NO} | {if YES: flash loan / oracle patterns found} |
 | ECONOMIC_DESIGN_AUDIT | MONETARY_PARAMETER flag | {YES/NO} | {if YES: monetary parameter setters found} |
 | EXTERNAL_PRECONDITION_AUDIT | External interactions detected | {YES/NO} | {if YES: external contract count} |
 | STORAGE_LAYOUT_SAFETY | STORAGE_LAYOUT flag | {YES/NO} | {if YES: proxy/delegatecall/assembly patterns found} |

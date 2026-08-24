@@ -6,8 +6,30 @@
   "default_branch": "main",
   "fetched": "2026-07-20",
   "last_verified": "2026-08-11",
-  "files_mirrored": 75,
-  "files_byte_identical": 75,
+  "files_mirrored": 73,
+  "files_byte_identical": 69,
+  "known_differences": [
+    {
+      "path": "solidity-auditor/references/hacking-agents/access-control-agent.md",
+      "reason": "removed - merged into sources/symbiosis/guard-consistency/"
+    },
+    {
+      "path": "solidity-auditor/references/hacking-agents/boundary-agent.md",
+      "reason": "removed - merged into sources/symbiosis/external-call-safety/"
+    },
+    {
+      "path": "solidity-auditor/SKILL.md",
+      "reason": "edited - bundle table 12->10 agents (access-control, boundary moved to symbiosis), all agent counts and prompt-template ranges updated, symbiosis pointer added"
+    },
+    {
+      "path": "solidity-auditor/references/hacking-agents/numerical-gap-agent.md",
+      "reason": "edited - boundary-agent reference now points to the symbiosis external-call-safety lens"
+    },
+    {
+      "path": "solidity-auditor/references/hacking-agents/asymmetry-agent.md",
+      "reason": "edited - boundary-agent reference now points to the symbiosis external-call-safety lens"
+    }
+  ],
   "license": "MIT, (c) 2024 AI Skills Contributors",
   "omitted": ["fizz/scripts/", "x-ray/scripts/", "static/", ".github/", ".git/"]
 }

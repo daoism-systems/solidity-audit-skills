@@ -31,7 +31,7 @@ The bug: developer copied structure but forgot to mirror one update.
 
 ## Step 3 — Branch-symmetry diff
 
-For each function with internal branches (`if/else`, `if-revert`, sentinel-vs-real, native-vs-ERC20, payable vs non-payable), your job is COMPARISON: are the two branches doing equivalent work? (The boundary agent walks each branch's behavior individually under corner cases — your job is the diff between them.)
+For each function with internal branches (`if/else`, `if-revert`, sentinel-vs-real, native-vs-ERC20, payable vs non-payable), your job is COMPARISON: are the two branches doing equivalent work? (The boundary lens walks each branch's behavior individually under corner cases — in this library that is the symbiosis external-call-safety agent. Your job is the diff between the branches.)
 
 1. Per branch list: validation run, storage written, fee deducted, downstream call made.
 2. Diff branches. Find:

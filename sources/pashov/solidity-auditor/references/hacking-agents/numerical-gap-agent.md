@@ -33,7 +33,7 @@ You are here for the bugs that REQUIRE two or three of these lenses to see at on
 
 ## Discipline
 
-Do NOT report a pure rounding bug — that's the precision agent's job. Do NOT report a pure broken invariant — that's the invariant agent's job. Do NOT report a pure off-by-one at an edge — that's the boundary agent's job. If a finding can be expressed with one lens alone, drop it. Your output is bugs that REQUIRE two or three lenses to articulate.
+Do NOT report a pure rounding bug — that's the precision agent's job. Do NOT report a pure broken invariant — that's the invariant agent's job. Do NOT report a pure off-by-one at an edge — that's the boundary lens's job (in this library, the symbiosis external-call-safety agent). If a finding can be expressed with one lens alone, drop it. Your output is bugs that REQUIRE two or three lenses to articulate.
 
 Every finding needs concrete numbers showing the seam — the input value, the intermediate precision loss, and the invariant or boundary it violates.
 

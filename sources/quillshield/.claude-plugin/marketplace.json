@@ -4,7 +4,7 @@
     "name": "QuillShield"
   },
   "metadata": {
-    "description": "QuillShield smart contract security auditing skills for AI agents. Comprehensive coverage of OWASP Smart Contract Top 10 plus proxy/upgrade, signature replay, and token integration vulnerabilities.",
+    "description": "QuillShield smart contract security auditing skills for AI agents. Comprehensive coverage of OWASP Smart Contract Top 10 plus proxy/upgrade, signature replay, and token integration vulnerabilities. This library's mirror carries 5 plugins; the other 5 were merged into sources/symbiosis/.",
     "version": "2.0.0"
   },
   "plugins": [
@@ -16,30 +16,9 @@
       "author": { "name": "QuillShield" }
     },
     {
-      "name": "semantic-guard-analysis",
-      "source": "./plugins/semantic-guard-analysis",
-      "description": "Detects logic vulnerabilities by finding functions that bypass security checks the contract consistently applies elsewhere. Based on the Consistency Principle.",
-      "version": "1.0.0",
-      "author": { "name": "QuillShield" }
-    },
-    {
-      "name": "state-invariant-detection",
-      "source": "./plugins/state-invariant-detection",
-      "description": "Automatically infers mathematical relationships between state variables then finds functions that violate them. Catches vulnerabilities behind the biggest DeFi hacks.",
-      "version": "1.0.0",
-      "author": { "name": "QuillShield" }
-    },
-    {
       "name": "reentrancy-pattern-analysis",
       "source": "./plugins/reentrancy-pattern-analysis",
       "description": "Systematically detects all reentrancy variants — classic, cross-function, cross-contract, read-only, and ERC-777/ERC-1155 callback reentrancy.",
-      "version": "1.0.0",
-      "author": { "name": "QuillShield" }
-    },
-    {
-      "name": "oracle-flashloan-analysis",
-      "source": "./plugins/oracle-flashloan-analysis",
-      "description": "Detects price oracle manipulation and flash loan attack vectors. Classifies oracle trust models, identifies stale prices, circular dependencies, and flash loan atomicity exploitation.",
       "version": "1.0.0",
       "author": { "name": "QuillShield" }
     },
@@ -54,20 +33,6 @@
       "name": "input-arithmetic-safety",
       "source": "./plugins/input-arithmetic-safety",
       "description": "Detects input validation failures and arithmetic vulnerabilities — precision loss, rounding exploitation, ERC4626 inflation attacks, unsafe casting, and unchecked block risks.",
-      "version": "1.0.0",
-      "author": { "name": "QuillShield" }
-    },
-    {
-      "name": "external-call-safety",
-      "source": "./plugins/external-call-safety",
-      "description": "Detects unsafe external call patterns and token integration vulnerabilities. Covers unchecked return values, fee-on-transfer tokens, rebasing tokens, and callback risks.",
-      "version": "1.0.0",
-      "author": { "name": "QuillShield" }
-    },
-    {
-      "name": "signature-replay-analysis",
-      "source": "./plugins/signature-replay-analysis",
-      "description": "Detects signature replay vulnerabilities. Covers same-chain, cross-chain, cross-contract, nonce-skip, and expired replay types plus EIP-712 and ecrecover safety.",
       "version": "1.0.0",
       "author": { "name": "QuillShield" }
     },
