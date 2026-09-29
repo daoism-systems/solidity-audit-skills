@@ -50,15 +50,22 @@ Run the pashov parallel-attacker methodology.
 Load {lib}/sources/pashov/solidity-auditor/SKILL.md and follow its
 orchestration, with these substitutions for this run:
 
-- Skip its Turn 1b model-selection question. No human is available; use your
-  own model family for all agents.
+- Answer its Turn 1b yourself — both questions. No human is available. Model:
+  use your own model family for all agents. Passes: invoke as `--loop 1` (one
+  pass, memory off), which settles the pass count silently per its Turn 1b-iii.
+  Never reach its Turn 1b-ii printed fallback — that block stops and waits
+  for an answer and would hang this run. Raise the count only if Tier 0 recorded
+  a budget that allows it; record the count you used.
+- It writes its run files under `.solidity-auditor/` in the target checkout.
+  That is scratch space, not in-scope source — never audit it.
 - Source is already bundled at {bundle}/source.md — do not re-derive scope.
 - Build the 10 agent bundles as that skill describes, appending each specialty
-  file from references/hacking-agents/ plus senior-auditor-sop.md and
-  shared-rules.md.
+  file from references/hacking-agents/ plus senior-auditor-sop.md,
+  shared-rules.md and report-language.md.
 - Spawn all 10 in one message, in parallel, in the background.
 
-After they complete, run that skill's Turn 4 dedup and its four judging gates
+After they complete, run that skill's Turn 4 dedup
+(references/dedup-and-assembly.md) and its four judging gates
 (references/judging.md). Then TRANSLATE the surviving findings into
 {bundle}/finding-format.md before returning. Keep its confidence score in the
 `rationale` field.

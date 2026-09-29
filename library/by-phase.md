@@ -35,7 +35,7 @@ Build a model of who can do what to whom, then identify attack surfaces.
 | Source | File | When |
 |---|---|---|
 | **[Q]** | `sources/quillshield/plugins/behavioral-state-analysis/skills/behavioral-state-analysis/SKILL.md` | Cleanest intent-extraction pipeline: behavioral intent → threat engines → adversarial simulation → Bayesian confidence. |
-| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` | 12-parallel-attacker orchestration. Strongest for multi-contract breadth scans. |
+| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` | 10-parallel-attacker orchestration; loop mode (`--loop N`) adds passes that each hunt past the earlier ones' findings. Strongest for multi-contract breadth scans. |
 | **[L]** | `sources/plamen/rules/orchestrator-rules.md` | Plamen's orchestrator rules for the recon → breadth → depth → verify → report pipeline. |
 
 **Combine [Q] + [P]:** BSA gives you the threat model; pashov's
@@ -141,7 +141,7 @@ findings, and produce a prioritized hypothesis list.
 
 | Source | File | When |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` (Turn 4) | Hard-gate dedup: function-level second pass, fix-preservation gate, completeness gate. `[agents: N]` correlation boosting. |
+| **[P]** | `sources/pashov/solidity-auditor/references/dedup-and-assembly.md` (Turn 4) | Hard-gate dedup: function-level second pass, fix-preservation gate, completeness gate. `[agents: N]` correlation boosting. |
 | **[L]** | `sources/plamen/agents/security-analyzer.md` | Synthesizer agent with explicit correlation pattern table (CS-* ↔ DS-*, AC-* ↔ TF-*, BLIND-* ↔ DEPTH-*). |
 | **[P]** | `sources/pashov/fizz/agents/invariant-discovery/synthesizer.md` | For fuzz-property synthesis. |
 | **[Q]** | (inside `behavioral-state-analysis/SKILL.md`) | Bayesian confidence scoring. |
@@ -163,6 +163,8 @@ Produce the final audit report with severity, evidence, and fix suggestions.
 | **[L]** | `sources/plamen/rules/finding-output-format.md` | Finding output format contract. |
 | **[P]** | `sources/pashov/solidity-auditor/references/report-formatting.md` | Pashov's report formatting. |
 | **[P]** | `sources/pashov/solidity-auditor/references/judging.md` | Four-gate severity judging rubric (BLOCKS / ALLOWS / IRRELEVANT / UNCERTAIN). |
+| **[P]** | `sources/pashov/solidity-auditor/references/report-language.md` | Simplified Technical English rules for finding titles and descriptions — one sentence, active voice, ≤25 words. |
+| **[P]** | `sources/pashov/solidity-auditor/references/assemble.sh` | Shell assembler: builds the report from per-run files so it never overstates coverage. |
 | **[O]** | `sources/omega/omega-audit-workflow/SKILL.md` | Report structure: per-file sections with filename-derived ID prefixes, a General section, mechanism→consequence→Recommendation→Severity-with-justification, and the preliminary → fix-commit → verified Resolution loop. |
 
 **Recommended:** [L] `report-template.md` for the structure → [P]
