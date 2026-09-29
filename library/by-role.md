@@ -13,7 +13,7 @@ the report.
 
 | Source | File | Style |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` | 4-turn orchestrator: Discover → Prepare bundles → Spawn 10 parallel attackers → Dedup & report. Banner-printing, hard-gate dedup with completeness/failure gates. |
+| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` | Turn-based orchestrator: Discover → pick model and pass count → Prepare bundles → Spawn 10 parallel attackers → Dedup → shell-assembled report. Loop mode (`--loop N`) runs N passes, each told what earlier passes found; `--memory` keeps a findings ledger across scans. Hard-gate dedup with completeness/failure gates. |
 | **[P]** | `sources/pashov/x-ray/SKILL.md` | 3-step pre-audit orchestrator: Enumerate → Read sources & synthesize invariants → Write report files. |
 | **[P]** | `sources/pashov/fizz/SKILL.md` | 11-step fuzz-suite orchestrator with guided/automatic modes and per-cycle coverage gates. |
 | **[L]** | `sources/plamen/CLAUDE.md` + `sources/plamen/rules/orchestrator-rules.md` | Phased pipeline: recon → breadth → rescan → depth → chain → verify → skeptic → report. Haltless by design — malformed phases auto-recover. |
@@ -103,7 +103,7 @@ master list, finds correlations, forms prioritized hypotheses.
 
 | Source | File | Style |
 |---|---|---|
-| **[P]** | `sources/pashov/solidity-auditor/SKILL.md` (Turn 4) | Hard-gate dedup: function-level second pass, fix-preservation gate, completeness gate, `[agents: N]` correlation boosting. |
+| **[P]** | `sources/pashov/solidity-auditor/references/dedup-and-assembly.md` (Turn 4) | Hard-gate dedup: function-level second pass, fix-preservation gate, completeness gate, `[agents: N]` correlation boosting. |
 | **[L]** | `sources/plamen/agents/security-analyzer.md` | Explicit correlation-pattern table (CS-* ↔ DS-*, AC-* ↔ TF-*, BLIND-* ↔ DEPTH-*). |
 | **[P]** | `sources/pashov/fizz/agents/invariant-discovery/synthesizer.md` | Fuzz-property synthesis — merges 5 discovery-agent outputs into a property plan with SHOULD-HOLD / EXPLORATORY guarantee tags. |
 | **[Q]** | (inside `behavioral-state-analysis/SKILL.md`) | Bayesian confidence scoring. |
@@ -147,6 +147,8 @@ Writes the final human-readable report.
 | **[L]** | `sources/plamen/rules/post-audit-improvement-protocol.md` | Post-audit improvement recommendations. |
 | **[P]** | `sources/pashov/solidity-auditor/references/report-formatting.md` | Pashov's report format. |
 | **[P]** | `sources/pashov/solidity-auditor/references/judging.md` | 4-gate severity judging rubric. |
+| **[P]** | `sources/pashov/solidity-auditor/references/report-language.md` | Simplified Technical English rules for finding titles and descriptions — one sentence, active voice, ≤25 words. |
+| **[P]** | `sources/pashov/solidity-auditor/references/assemble.sh` | Shell assembler: builds the report from per-run files so it never overstates coverage. |
 | **[P]** | `sources/pashov/fizz/agents/report-writer.md` | Fuzz-campaign report writer. |
 | **[O]** | `sources/omega/omega-audit-workflow/SKILL.md` | Report skeleton, filename-derived finding IDs, the four-level severity ladder with inline justification, and the six resolution statuses including `[resolved*]` for contingent mitigations. |
 

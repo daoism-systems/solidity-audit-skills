@@ -35,15 +35,16 @@ that mirror's `.provenance` under `known_differences`, with reason
 
 ## Pinned upstream commits
 
-Upstream content was fetched on **2026-07-20**. The mirrors carry no `.git`, so
+Upstream content was fetched on **2026-07-20** (`pashov` re-synced to
+solidity-auditor v4 on **2026-09-29**). The mirrors carry no `.git`, so
 each commit below was recovered by content match — hashing every mirrored file
 and walking upstream history for the commit whose tree matches — and is
 re-verified by `scripts/check_provenance.py`.
 
 | Source | Commit | Dated | Files | Byte-identical |
 |---|---|---|---|---|
-| `sources/pashov/` | [`c577eb7799c349de0acb187ba00ca98e14e436fd`](https://github.com/pashov/skills/commit/c577eb7799c349de0acb187ba00ca98e14e436fd) | 2026-07-09 | 73 | 69 / 73 ¹ ² |
-| `sources/plamen/` | [`795962b96e254f2e423a2635fe7f8cb8ea1e6d69`](https://github.com/PlamenTSV/plamen/commit/795962b96e254f2e423a2635fe7f8cb8ea1e6d69) | 2026-07-15 | 411 | 402 / 411 ² |
+| `sources/pashov/` | [`f6c7f0de9cce16f6aa9c57aaac104f0dee90582e`](https://github.com/pashov/skills/commit/f6c7f0de9cce16f6aa9c57aaac104f0dee90582e) | 2026-09-23 | 77 | 70 / 77 ² |
+| `sources/plamen/` | [`795962b96e254f2e423a2635fe7f8cb8ea1e6d69`](https://github.com/PlamenTSV/plamen/commit/795962b96e254f2e423a2635fe7f8cb8ea1e6d69) | 2026-07-15 | 411 | 402 / 411 ¹ ² |
 | `sources/quillshield/` | [`8bdd3c058704cd855ce29b8e2385708b59152606`](https://github.com/quillai-network/quillshield_skills/commit/8bdd3c058704cd855ce29b8e2385708b59152606) | 2026-03-30 | 60 | 51 / 60 ² |
 | `sources/omega/` | — | — | 12 skills | original content, no upstream |
 | `sources/symbiosis/` | — | derived 2026-08-19 | 16 | derived, see below |
@@ -90,6 +91,11 @@ install pashov/skills directly if you need the originals):
   instructions and dedup phase updated, symbiosis pointer added
 - edited `numerical-gap-agent.md`, `asymmetry-agent.md` — boundary-agent
   references now name the symbiosis external-call-safety lens
+- edited (v4 files) `references/agent-prompts.md`,
+  `references/dedup-and-assembly.md`, `references/report-formatting.md`,
+  `references/assemble.sh` — agent counts 12→10 and prompt ranges; in
+  `assemble.sh` a full pass is `10/10`, so a complete pass is not reported
+  as degraded
 
 **Omitted from the mirror** (kept upstream; install pashov/skills directly
 if you need them):
@@ -256,7 +262,7 @@ carries**, clone and check out the pinned SHAs above:
 mkdir -p sources && cd sources
 
 git clone https://github.com/pashov/skills.git pashov
-git -C pashov checkout c577eb7799c349de0acb187ba00ca98e14e436fd
+git -C pashov checkout f6c7f0de9cce16f6aa9c57aaac104f0dee90582e
 
 git clone https://github.com/PlamenTSV/plamen.git plamen
 git -C plamen checkout 795962b96e254f2e423a2635fe7f8cb8ea1e6d69

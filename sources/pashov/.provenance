@@ -1,13 +1,13 @@
 {
   "name": "pashov",
   "upstream": "https://github.com/pashov/skills",
-  "commit": "c577eb7799c349de0acb187ba00ca98e14e436fd",
-  "commit_date": "2026-07-09",
+  "commit": "f6c7f0de9cce16f6aa9c57aaac104f0dee90582e",
+  "commit_date": "2026-09-23",
   "default_branch": "main",
-  "fetched": "2026-07-20",
-  "last_verified": "2026-08-11",
-  "files_mirrored": 73,
-  "files_byte_identical": 69,
+  "fetched": "2026-09-29",
+  "last_verified": "2026-09-29",
+  "files_mirrored": 77,
+  "files_byte_identical": 70,
   "known_differences": [
     {
       "path": "solidity-auditor/references/hacking-agents/access-control-agent.md",
@@ -19,7 +19,7 @@
     },
     {
       "path": "solidity-auditor/SKILL.md",
-      "reason": "edited - bundle table 12->10 agents (access-control, boundary moved to symbiosis), all agent counts and prompt-template ranges updated, symbiosis pointer added"
+      "reason": "edited - bundle table 12->10 agents (access-control, boundary moved to symbiosis), all agent counts, prompt ranges and dead-agent wording updated, symbiosis pointer added; the measured-timing note (a 12-agent upstream run) is left verbatim"
     },
     {
       "path": "solidity-auditor/references/hacking-agents/numerical-gap-agent.md",
@@ -28,8 +28,30 @@
     {
       "path": "solidity-auditor/references/hacking-agents/asymmetry-agent.md",
       "reason": "edited - boundary-agent reference now points to the symbiosis external-call-safety lens"
+    },
+    {
+      "path": "solidity-auditor/references/agent-prompts.md",
+      "reason": "edited - agent counts 12->10, prompt ranges 1-9/10-12 -> 1-7/8-10"
+    },
+    {
+      "path": "solidity-auditor/references/dedup-and-assembly.md",
+      "reason": "edited - agent counts 12->10 (incl. 11/12 -> 9/10 examples); dead-agent example names the periphery agent instead of the removed access-control agent"
+    },
+    {
+      "path": "solidity-auditor/references/report-formatting.md",
+      "reason": "edited - agent counts 12->10 in prose and Passes-row examples"
+    },
+    {
+      "path": "solidity-auditor/references/assemble.sh",
+      "reason": "edited - full-pass agent count 12/12 -> 10/10, so a complete pass is not reported as degraded"
     }
   ],
   "license": "MIT, (c) 2024 AI Skills Contributors",
-  "omitted": ["fizz/scripts/", "x-ray/scripts/", "static/", ".github/", ".git/"]
+  "omitted": [
+    "fizz/scripts/",
+    "x-ray/scripts/",
+    "static/",
+    ".github/",
+    ".git/"
+  ]
 }
